@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}معرض الصور - شاليه النرجس{% endblock %}
+
+{% block content %}
+<!-- رأس الصفحة - Page Header -->
+<section class="page-header">
+    <div class="page-header-overlay"></div>
+    <div class="container">
+        <div class="page-header-content">
+            <h1 class="page-title">
+                <i class="fas fa-images me-2"></i>
+                معرض الصور
+            </h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'chalet:home' %}">الرئيسية</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">معرض الصور</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</section>
+
+<!-- قسم المعرض - Gallery Section -->
+<section class="gallery-section section-padding">
+    <div class="container">
+        {% if images %}
+        <div class="section-header text-center mb-5">
+            <span class="section-subtitle">استكشف</span>
+            <h2 class="section-title">صور شاليه النرجس</h2>
+            <div class="divider mx-auto"></div>
+            <p class="section-desc">
+                اطلع على صور الشاليه والمرافق المتوفرة
+            </p>
+        </div>
+
+        <!-- شبكة الصور - Image Grid -->
+        <div class="row g-4">
+            {% for image in images %}
+            <div class="col-lg-4 col-md-6">
+                <div class="gallery-card">
+                    <a href="{{ image.image.url }}" class="gallery-link glightbox" data-gallery="main-gallery"
+                        data-title="{{ image.caption|default:'شاليه النرجس' }}"
+                        data-description="{% if chalet %}{{ chalet.name }}{% endif %}">
+                        <img src="{{ image.image.url }}" alt="{{ image.caption|default:'شاليه النرجس' }}"
+                            class="gallery-image" loading="lazy">
+                        <div class="gallery-card-overlay">
+                            <div class="gallery-card-icon">
+                                <i class="fas fa-expand"></i>
+                            </div>
+                            {% if image.caption %}
+                            <div class="gallery-card-caption">
+                                {{ image.caption }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <!-- حالة عدم وجود صور -->
+        <div class="empty-state text-center">
+            <div class="empty-icon">
+                <i class="fas fa-images"></i>
+            </div>
+            <h3 class="empty-title">لا توجد صور حالياً</h3>
+            <p class="empty-text">سيتم إضافة صور الشاليه قريباً</p>
+            <a href="{% url 'chalet:home' %}" class="btn btn-primary">
+                <i class="fas fa-home me-2"></i>
+                العودة للرئيسية
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- قسم الحجز السريع -->
+<section class="cta-section cta-mini">
+    <div class="cta-overlay"></div>
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h3 class="cta-title-sm">أعجبتك الصور؟</h3>
+                <p class="cta-text-sm">احجز الآن واستمتع بتجربة لا تُنسى</p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <a href="{% url 'chalet:booking' %}" class="btn btn-cta-primary">
+                    <i class="fas fa-calendar-check me-2"></i>
+                    احجز الآن
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // تهيئة معرض الصور GLightbox
+    const lightbox = GLightbox({
+        selector: '.glightbox',
+        touchNavigation: true,
+        loop: true,
+        autoplayVideos: true,
+        closeButton: true,
+        openEffect: 'zoom',
+        closeEffect: 'fade',
+        cssEfects: {
+            fade: { in: 'fadeIn', out: 'fadeOut' },
+            zoom: { in: 'zoomIn', out: 'zoomOut' }
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,5 @@
+# متطلبات مشروع شاليه النرجس
+# Django Website Requirements
+
+Django>=4.2,<5.0
+Pillow>=10.0.0

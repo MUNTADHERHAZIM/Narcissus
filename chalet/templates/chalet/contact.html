@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #map {
+        height: 450px;
+        width: 100%;
+        z-index: 1;
+        border-top: 4px solid var(--secondary-color);
+    }
+</style>
+{% endblock %}
+
+{% block title %}اتصل بنا - شاليه النرجس{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // إحداثيات افتراضية (يمكن تعديلها لاحقاً حسب الموقع الدقيق)
+        // سنفترض موقعاً تقريبياً في العراق
+        const latitude = 30.449619;
+        const longitude = 47.898551;
+        const chaletName = "شاليه النرجس";
+            //30.449619, 47.898551
+
+
+        // تهيئة الخريطة
+        const map = L.map('map').setView([latitude, longitude], 13);
+
+        // إضافة طبقة الخريطة (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // إضافة علامة الموقع (Marker)
+        const marker = L.marker([latitude, longitude]).addTo(map);
+
+        // إضافة نافذة منبثقة عند النقر
+        marker.bindPopup(`
+            <div style="text-align: center; font-family: 'Tajawal', sans-serif;">
+                <h6 style="margin-bottom: 5px; font-weight: 700;">${chaletName}</h6>
+                <p style="margin-bottom: 10px; font-size: 0.9rem;">أهلاً بكم في شاليه النرجس</p>
+                <a href="https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}" 
+                   target="_blank" 
+                   class="btn btn-sm btn-primary text-white" 
+                   style="font-size: 0.8rem; padding: 5px 10px;">
+                   الحصول على الاتجاهات
+                </a>
+            </div>
+        `).openPopup();
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<!-- رأس الصفحة -->
+<section class="page-header">
+    <div class="page-header-overlay"></div>
+    <div class="container">
+        <div class="page-header-content">
+            <h1 class="page-title">
+                <i class="fas fa-envelope me-2"></i>
+                اتصل بنا
+            </h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'chalet:home' %}">الرئيسية</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">اتصل بنا</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</section>
+
+<!-- قسم الاتصال -->
+<section class="contact-section section-padding">
+    <div class="container">
+        <div class="row">
+            <!-- معلومات الاتصال -->
+            <div class="col-lg-5 mb-5 mb-lg-0">
+                <div class="contact-info-card">
+                    <h3 class="contact-info-title">
+                        <i class="fas fa-headset me-2"></i>
+                        تواصل معنا
+                    </h3>
+                    <p class="contact-info-desc">
+                        نحن هنا لمساعدتك. تواصل معنا في أي وقت وسنرد عليك في أقرب فرصة.
+                    </p>
+
+                    <!-- بطاقات معلومات الاتصال -->
+                    <div class="contact-cards">
+                        <div class="contact-card">
+                            <div class="contact-card-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="contact-card-content">
+                                <h5>العنوان</h5>
+                                <p>{% if chalet %}{{ chalet.location }}{% else %}العراق{% endif %}</p>
+                            </div>
+                        </div>
+
+                        <div class="contact-card">
+                            <div class="contact-card-icon">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <div class="contact-card-content">
+                                <h5>الهاتف</h5>
+                                <p dir="ltr">+964 XXX XXX XXXX</p>
+                            </div>
+                        </div>
+
+                        <div class="contact-card">
+                            <div class="contact-card-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="contact-card-content">
+                                <h5>البريد الإلكتروني</h5>
+                                <p>info@narjis-chalet.com</p>
+                            </div>
+                        </div>
+
+                        <div class="contact-card">
+                            <div class="contact-card-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="contact-card-content">
+                                <h5>ساعات العمل</h5>
+                                <p>24 ساعة / 7 أيام</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- روابط التواصل الاجتماعي -->
+                    <div class="social-contact">
+                        <h5>تابعنا على</h5>
+                        <div class="social-links">
+                            <a href="#" class="social-link facebook" title="فيسبوك">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a href="#" class="social-link instagram" title="انستغرام">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                            <a href="https://wa.me/964XXXXXXXXXX" class="social-link whatsapp" title="واتساب"
+                                target="_blank">
+                                <i class="fab fa-whatsapp"></i>
+                            </a>
+                            <a href="#" class="social-link telegram" title="تيليجرام">
+                                <i class="fab fa-telegram"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- نموذج الاتصال -->
+            <div class="col-lg-7">
+                <div class="contact-form-card">
+                    <h3 class="contact-form-title">
+                        <i class="fas fa-paper-plane me-2"></i>
+                        أرسل رسالة
+                    </h3>
+
+                    <form method="post" id="contactForm">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.name.id_for_label }}" class="form-label">
+                                    {{ form.name.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.name.errors %}{{ error }}{% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">
+                                    {{ form.email.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.email.errors %}{{ error }}{% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.phone.id_for_label }}" class="form-label">
+                                    {{ form.phone.label }}
+                                </label>
+                                {{ form.phone }}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.subject.id_for_label }}" class="form-label">
+                                    {{ form.subject.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.subject }}
+                                {% if form.subject.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.subject.errors %}{{ error }}{% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="{{ form.message.id_for_label }}" class="form-label">
+                                {{ form.message.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.message }}
+                            {% if form.message.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.message.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-paper-plane me-2"></i>
+                            إرسال الرسالة
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- قسم الخريطة التفاعلية -->
+<section class="map-section">
+    <div class="container-fluid p-0">
+        <div id="map"></div>
+    </div>
+</section>
+{% endblock %}

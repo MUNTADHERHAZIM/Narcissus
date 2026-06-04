@@ -1,0 +1,440 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}لوحة تحكم الإدارة | شاليه النرجس{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background-color: var(--off-white);
+    }
+    
+    .dashboard-header {
+        margin-top: 120px; 
+        margin-bottom: 40px;
+    }
+    
+    .dashboard-title {
+        color: var(--primary-dark);
+        font-weight: 800;
+        position: relative;
+        display: inline-block;
+        padding-bottom: 10px;
+    }
+    
+    .dashboard-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 60px;
+        height: 4px;
+        background: var(--gradient-gold);
+        border-radius: 2px;
+    }
+
+    /* Stat Cards */
+    .stat-card {
+        border-radius: var(--border-radius-lg);
+        border: none;
+        overflow: hidden;
+        position: relative;
+        box-shadow: var(--shadow-md);
+        transition: var(--transition);
+        z-index: 1;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-xl);
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        opacity: 0.9;
+    }
+    
+    .stat-card.total {
+        background: var(--gradient-primary);
+        color: var(--white);
+    }
+    
+    .stat-card.pending {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: var(--white);
+    }
+    
+    .stat-card.confirmed {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: var(--white);
+    }
+    
+    .stat-icon {
+        font-size: 3rem;
+        opacity: 0.2;
+        position: absolute;
+        left: -10px;
+        bottom: -15px;
+        transform: rotate(-15deg);
+        transition: var(--transition);
+    }
+    
+    .stat-card:hover .stat-icon {
+        transform: rotate(0) scale(1.1);
+        opacity: 0.3;
+    }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        line-height: 1;
+        margin-top: 10px;
+    }
+
+    /* Table Styling */
+    .table-container {
+        background: var(--white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        padding: 20px;
+        margin-bottom: 30px;
+        border: 1px solid var(--border-color);
+    }
+    
+    .luxury-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 10px;
+    }
+    
+    .luxury-table th {
+        background: transparent;
+        color: var(--text-muted);
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+        padding: 10px 15px;
+        border: none;
+    }
+    
+    .luxury-table td {
+        background: var(--white);
+        padding: 18px 15px;
+        vertical-align: middle;
+        border-top: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border-color);
+        transition: var(--transition);
+    }
+    
+    .luxury-table tr:hover td {
+        background: var(--light-bg);
+    }
+    
+    .luxury-table td:first-child {
+        border-right: 1px solid var(--border-color);
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
+    }
+    
+    .luxury-table td:last-child {
+        border-left: 1px solid var(--border-color);
+        border-top-left-radius: 10px;
+        border-bottom-left-radius: 10px;
+    }
+
+    /* Status Badges */
+    .status-badge {
+        font-size: 0.85rem;
+        padding: 0.6em 1.2em;
+        border-radius: 50px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+    
+    .bg-warning { background-color: rgba(245, 158, 11, 0.15) !important; color: #d97706 !important; }
+    .bg-success { background-color: rgba(16, 185, 129, 0.15) !important; color: #059669 !important; }
+    .bg-danger { background-color: rgba(239, 68, 68, 0.15) !important; color: #dc2626 !important; }
+    .bg-info { background-color: rgba(14, 165, 233, 0.15) !important; color: #0284c7 !important; }
+
+    /* Action Buttons */
+    .action-btn {
+        border-radius: 50px;
+        padding: 0.4rem 1.2rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+        transition: var(--transition);
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .btn-luxury {
+        background: var(--gradient-gold);
+        color: var(--primary-dark) !important;
+    }
+    
+    .btn-luxury:hover {
+        box-shadow: var(--shadow-gold);
+        transform: translateY(-2px);
+    }
+
+    .btn-outline-luxury {
+        background: transparent;
+        border: 1px solid var(--secondary-color);
+        color: var(--secondary-dark);
+    }
+    
+    .btn-outline-luxury:hover {
+        background: var(--secondary-color);
+        color: var(--primary-dark);
+    }
+    
+    .btn-danger-soft {
+        background: rgba(239, 68, 68, 0.1);
+        color: #dc2626;
+    }
+    
+    .btn-danger-soft:hover {
+        background: #dc2626;
+        color: white;
+    }
+
+    /* Mobile Cards */
+    .booking-card {
+        border-radius: var(--border-radius-lg);
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 1.5rem;
+        transition: var(--transition);
+        background: var(--white);
+        overflow: hidden;
+    }
+    
+    .booking-card:hover {
+        box-shadow: var(--shadow-md);
+        border-color: var(--secondary-light);
+    }
+    
+    .booking-card-header {
+        padding: 15px 20px;
+        border-bottom: 1px solid var(--off-white);
+        background: var(--light-bg);
+    }
+    
+    .booking-card-body {
+        padding: 20px;
+    }
+    
+    .mobile-dates {
+        background: var(--off-white);
+        border-radius: var(--border-radius);
+        padding: 10px;
+        margin-bottom: 15px;
+    }
+    
+    @media (max-width: 991.98px) {
+        .table-view { display: none; }
+        .card-view { display: block; }
+    }
+    @media (min-width: 992px) {
+        .table-view { display: block; }
+        .card-view { display: none; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container dashboard-header" style="min-height: 60vh;">
+    
+    <div class="mb-5 text-center text-md-start">
+        <h2 class="dashboard-title"><i class="fas fa-crown text-warning me-2"></i> لوحة الإدارة الذكية</h2>
+        <p class="text-muted mt-2">نظرة عامة على جميع الحجوزات وإدارتها بكل سهولة.</p>
+    </div>
+
+    <!-- الإحصائيات -->
+    <div class="row mb-5">
+        <div class="col-md-4 mb-4">
+            <div class="stat-card total p-4 h-100">
+                <h6 class="text-uppercase letter-spacing-1 mb-1 opacity-75">إجمالي الحجوزات</h6>
+                <div class="stat-value">{{ total_bookings }}</div>
+                <i class="fas fa-calendar-alt stat-icon"></i>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="stat-card pending p-4 h-100">
+                <h6 class="text-uppercase letter-spacing-1 mb-1 opacity-75">طلبات قيد الانتظار</h6>
+                <div class="stat-value">{{ pending_bookings }}</div>
+                <i class="fas fa-hourglass-half stat-icon"></i>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="stat-card confirmed p-4 h-100">
+                <h6 class="text-uppercase letter-spacing-1 mb-1 opacity-75">حجوزات مؤكدة</h6>
+                <div class="stat-value">{{ confirmed_bookings }}</div>
+                <i class="fas fa-check-double stat-icon"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <h4 class="fw-bold m-0" style="color: var(--primary-dark);">قائمة الطلبات</h4>
+    </div>
+
+    {% if not bookings %}
+    <div class="alert alert-info text-center shadow-sm" style="border-radius: var(--border-radius-lg); padding: 3rem;">
+        <i class="fas fa-inbox fa-3x mb-3 text-muted"></i>
+        <h5 class="text-muted">لا توجد طلبات حجوزات حتى الآن.</h5>
+    </div>
+    {% else %}
+
+    <!-- عرض الجداول (للشاشات الكبيرة) -->
+    <div class="table-view">
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="luxury-table">
+                    <thead>
+                        <tr>
+                            <th>العميل</th>
+                            <th>معلومات التواصل</th>
+                            <th>الإقامة</th>
+                            <th>المبلغ</th>
+                            <th>الحالة</th>
+                            <th class="text-center">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in bookings %}
+                        <tr>
+                            <td>
+                                <strong class="d-block" style="color: var(--primary-color); font-size: 1.1rem;">{{ booking.name }}</strong>
+                                <small class="text-muted">حجز #{{ booking.id }}</small>
+                            </td>
+                            <td>
+                                <div class="d-flex flex-column gap-1">
+                                    <span dir="ltr" class="text-end fw-bold"><i class="fas fa-phone-alt me-2 text-muted small"></i>{{ booking.phone }}</span>
+                                    <small class="text-muted"><i class="fas fa-envelope me-2 small"></i>{{ booking.email }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex flex-column">
+                                    <span><strong>من:</strong> {{ booking.check_in|date:"Y/m/d" }}</span>
+                                    <span><strong>إلى:</strong> {{ booking.check_out|date:"Y/m/d" }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <strong style="color: var(--primary-dark); font-size: 1.1rem;">
+                                    {% if booking.total_price %}{{ booking.total_price }} د.ع{% else %}--{% endif %}
+                                </strong>
+                            </td>
+                            <td>
+                                <span class="status-badge bg-{{ booking.get_status_display_class }}">
+                                    {{ booking.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-2">
+                                    <a href="{% url 'chalet:booking_receipt' booking.id %}" class="action-btn" style="background: var(--off-white); color: var(--primary-dark); border: 1px solid var(--border-color);" title="عرض الوصل">
+                                        <i class="fas fa-receipt"></i> الوصل
+                                    </a>
+                                    {% if booking.status == 'pending' %}
+                                    <a href="{% url 'chalet:update_booking_status' booking.id 'confirmed' %}" class="action-btn btn-luxury" title="تأكيد">
+                                        <i class="fas fa-check"></i> تأكيد
+                                    </a>
+                                    <a href="{% url 'chalet:update_booking_status' booking.id 'cancelled' %}" class="action-btn btn-danger-soft" title="إلغاء">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                    {% elif booking.status == 'confirmed' %}
+                                    <a href="{% url 'chalet:update_booking_status' booking.id 'completed' %}" class="action-btn btn-outline-luxury" title="مكتمل">
+                                        <i class="fas fa-flag-checkered"></i> إنهاء
+                                    </a>
+                                    <a href="{% url 'chalet:update_booking_status' booking.id 'cancelled' %}" class="action-btn btn-danger-soft" title="إلغاء">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                    {% else %}
+                                    <span class="text-muted small">مغلق</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- عرض البطاقات (للهواتف المحمولة) -->
+    <div class="card-view">
+        {% for booking in bookings %}
+        <div class="booking-card">
+            <div class="booking-card-header d-flex justify-content-between align-items-center">
+                <span class="text-muted small fw-bold">حجز #{{ booking.id }}</span>
+                <span class="status-badge bg-{{ booking.get_status_display_class }}">
+                    {{ booking.get_status_display }}
+                </span>
+            </div>
+            <div class="booking-card-body">
+                <h5 class="fw-bold mb-3" style="color: var(--primary-dark);">{{ booking.name }}</h5>
+                
+                <div class="d-flex align-items-center mb-3">
+                    <i class="fas fa-phone-alt text-muted me-2"></i>
+                    <span dir="ltr" class="fw-bold">{{ booking.phone }}</span>
+                </div>
+                
+                <div class="mobile-dates row text-center">
+                    <div class="col-6 border-end border-light">
+                        <small class="text-muted d-block mb-1">الوصول</small>
+                        <strong>{{ booking.check_in|date:"Y/m/d" }}</strong>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block mb-1">المغادرة</small>
+                        <strong>{{ booking.check_out|date:"Y/m/d" }}</strong>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <span class="text-muted">المبلغ الإجمالي:</span>
+                    <strong style="color: var(--primary-dark); font-size: 1.2rem;">
+                        {% if booking.total_price %}{{ booking.total_price }} د.ع{% else %}--{% endif %}
+                    </strong>
+                </div>
+
+                <div class="d-flex gap-2 mb-2">
+                    <a href="{% url 'chalet:booking_receipt' booking.id %}" class="action-btn flex-grow-1 justify-content-center" style="background: var(--off-white); color: var(--primary-dark); border: 1px solid var(--border-color);">
+                        <i class="fas fa-receipt me-1"></i> عرض الوصل الفاخر
+                    </a>
+                </div>
+                <div class="d-flex gap-2">
+                    {% if booking.status == 'pending' %}
+                    <a href="{% url 'chalet:update_booking_status' booking.id 'confirmed' %}" class="action-btn btn-luxury flex-grow-1 justify-content-center">
+                        <i class="fas fa-check"></i> تأكيد الطلب
+                    </a>
+                    <a href="{% url 'chalet:update_booking_status' booking.id 'cancelled' %}" class="action-btn btn-danger-soft px-3">
+                        <i class="fas fa-times"></i>
+                    </a>
+                    {% elif booking.status == 'confirmed' %}
+                    <a href="{% url 'chalet:update_booking_status' booking.id 'completed' %}" class="action-btn btn-outline-luxury flex-grow-1 justify-content-center">
+                        <i class="fas fa-flag-checkered"></i> إنهاء الحجز
+                    </a>
+                    <a href="{% url 'chalet:update_booking_status' booking.id 'cancelled' %}" class="action-btn btn-danger-soft px-3">
+                        <i class="fas fa-times"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% endif %}
+</div>
+{% endblock %}

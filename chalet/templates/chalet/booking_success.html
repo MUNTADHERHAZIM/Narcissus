@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تم الحجز بنجاح - شاليه النرجس{% endblock %}
+
+{% block content %}
+<!-- رأس الصفحة -->
+<section class="page-header page-header-success">
+    <div class="page-header-overlay"></div>
+    <div class="container">
+        <div class="page-header-content">
+            <h1 class="page-title">
+                <i class="fas fa-check-circle me-2"></i>
+                تم الحجز بنجاح
+            </h1>
+        </div>
+    </div>
+</section>
+
+<!-- تأكيد الحجز -->
+<section class="success-section section-padding">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="success-card text-center">
+                    <!-- أيقونة النجاح -->
+                    <div class="success-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+
+                    <h2 class="success-title">شكراً لك!</h2>
+                    <p class="success-message">
+                        تم استلام طلب حجزك بنجاح وسنتواصل معك قريباً للتأكيد.
+                    </p>
+
+                    <!-- تفاصيل الحجز -->
+                    <div class="booking-details-card">
+                        <h4 class="details-title">
+                            <i class="fas fa-receipt me-2"></i>
+                            تفاصيل الحجز
+                        </h4>
+
+                        <div class="details-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">رقم الحجز</span>
+                                <span class="detail-value booking-id">#{{ booking.id }}</span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">اسم الحاجز</span>
+                                <span class="detail-value">{{ booking.name }}</span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">الشاليه</span>
+                                <span class="detail-value">{{ booking.chalet.name }}</span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">تاريخ الوصول</span>
+                                <span class="detail-value">{{ booking.check_in|date:"d/m/Y" }}</span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">تاريخ المغادرة</span>
+                                <span class="detail-value">{{ booking.check_out|date:"d/m/Y" }}</span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">عدد الليالي</span>
+                                <span class="detail-value">{{ booking.get_nights }} ليلة</span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">عدد النزلاء</span>
+                                <span class="detail-value">{{ booking.guests }} شخص</span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">حالة الحجز</span>
+                                <span class="detail-value">
+                                    <span class="badge bg-{{ booking.get_status_display_class }}">
+                                        {{ booking.get_status_display }}
+                                    </span>
+                                </span>
+                            </div>
+
+                            {% if booking.total_price %}
+                            <div class="detail-item total-price">
+                                <span class="detail-label">السعر الإجمالي</span>
+                                <span class="detail-value">{{ booking.total_price|floatformat:0 }} دينار</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- معلومات الاتصال -->
+                    <div class="contact-info-box">
+                        <h5>
+                            <i class="fas fa-phone-alt me-2"></i>
+                            معلومات الاتصال المُدخلة
+                        </h5>
+                        <p>
+                            <strong>البريد الإلكتروني:</strong> {{ booking.email }}
+                        </p>
+                        <p>
+                            <strong>رقم الهاتف:</strong> <span dir="ltr">{{ booking.phone }}</span>
+                        </p>
+                    </div>
+
+                    <!-- ملاحظة -->
+                    <div class="info-note">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <span>
+                            سيتم التواصل معك خلال 24 ساعة عبر الهاتف أو البريد الإلكتروني لتأكيد الحجز وإتمام الدفع.
+                        </span>
+                    </div>
+
+                    <!-- أزرار -->
+                    <div class="success-actions d-print-none">
+                        <a href="{% url 'chalet:home' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-home me-2"></i>
+                            العودة للرئيسية
+                        </a>
+                        <button onclick="window.print()" class="btn btn-success btn-lg">
+                            <i class="fas fa-print me-2"></i>
+                            طباعة الإيصال
+                        </button>
+                        <a href="{% url 'chalet:contact' %}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-envelope me-2"></i>
+                            تواصل معنا
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    @media print {
+
+        /* إخفاء العناصر غير الضرورية */
+        .navbar,
+        .footer,
+        .page-header,
+        .success-icon,
+        .success-title,
+        .success-message,
+        .info-note,
+        .d-print-none {
+            display: none !important;
+        }
+
+        /* تنسيق حاوية الطباعة */
+        body {
+            background: white !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .success-section {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .success-card {
+            box-shadow: none !important;
+            border: 1px solid #eee !important;
+            padding: 40px !important;
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+
+        .booking-details-card {
+            box-shadow: none !important;
+            border: 2px solid #333 !important;
+            border-radius: 10px !important;
+            padding: 20px !important;
+            margin-top: 20px !important;
+        }
+
+        .details-title {
+            text-align: center !important;
+            border-bottom: 2px solid #333 !important;
+            padding-bottom: 15px !important;
+            margin-bottom: 20px !important;
+            font-size: 24px !important;
+            color: #000 !important;
+        }
+
+        .details-grid {
+            display: block !important;
+        }
+
+        .detail-item {
+            display: flex !important;
+            justify-content: space-between !important;
+            border-bottom: 1px dashed #ccc !important;
+            padding: 12px 0 !important;
+        }
+
+        .detail-label {
+            font-weight: bold !important;
+            color: #333 !important;
+        }
+
+        .item-value {
+            color: #000 !important;
+        }
+
+        .total-price {
+            background: #f9f9f9 !important;
+            border: 2px solid #000 !important;
+            padding: 15px !important;
+            margin-top: 20px !important;
+            font-size: 20px !important;
+        }
+
+        .contact-info-box {
+            margin-top: 30px !important;
+            border: 1px solid #ccc !important;
+            padding: 15px !important;
+            background: #fff !important;
+        }
+
+        /* إضافة شعار نصي ومعلومات التواصل للطباعة */
+        .success-card::before {
+            content: "إيصال حجز - شاليه النرجس\000A الهاتف: +964 XXX XXX XXXX | البريد: info@narjis-chalet.com";
+            white-space: pre-wrap;
+            display: block;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #000;
+            border-bottom: 2px solid #000;
+            padding-bottom: 15px;
+        }
+
+        .success-card::after {
+            content: "نشكركم لاختياركم شاليه النرجس. يرجى إبراز هذا الإيصال عند الوصول.";
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+            font-size: 14px;
+            font-style: italic;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+    }
+</style>
+{% endblock %}

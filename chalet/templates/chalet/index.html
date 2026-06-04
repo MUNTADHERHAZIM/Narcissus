@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}شاليه النرجس - الصفحة الرئيسية{% endblock %}
+
+{% block content %}
+<!-- قسم السلايدر الرئيسي - Hero Slider Section -->
+<section class="hero-section">
+    {% if images %}
+    <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000">
+        <!-- مؤشرات السلايدر -->
+        <div class="carousel-indicators">
+            {% for image in images %}
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active" aria-current="true" {% endif %} aria-label="الشريحة {{ forloop.counter }}"></button>
+            {% endfor %}
+        </div>
+
+        <!-- شرائح السلايدر -->
+        <div class="carousel-inner">
+            {% for image in images %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <div class="carousel-image" style="background-image: url('{{ image.image.url }}');"></div>
+                <div class="carousel-overlay"></div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- أزرار التنقل -->
+        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">السابق</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">التالي</span>
+        </button>
+    </div>
+    {% endif %}
+
+    <!-- محتوى الترحيب -->
+    <div class="hero-content">
+        <div class="container">
+            <div class="hero-text text-center">
+                <h1 class="hero-title animate-fade-in">
+                    <span class="highlight">شاليه النرجس</span>
+                </h1>
+                <p class="hero-subtitle animate-fade-in-delay">
+                    {% if chalet %}
+                    {{ chalet.short_description|default:"استمتع بأجمل الأوقات في أفضل شاليه للعائلات والمجموعات" }}
+                    {% else %}
+                    استمتع بأجمل الأوقات في أفضل شاليه للعائلات والمجموعات
+                    {% endif %}
+                </p>
+                <div class="hero-buttons animate-fade-in-delay-2">
+                    <a href="{% url 'chalet:booking' %}" class="btn btn-hero-primary">
+                        <i class="fas fa-calendar-check me-2 animate-bounce-soft"></i>
+                        احجز الآن
+                    </a>
+                    <a href="{% url 'chalet:chalet_detail' %}" class="btn btn-hero-secondary">
+                        <i class="fas fa-info-circle me-2"></i>
+                        اكتشف المزيد
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- سهم للأسفل -->
+    <a href="#about" class="scroll-down">
+        <i class="fas fa-chevron-down"></i>
+    </a>
+</section>
+
+<!-- قسم عن الشاليه - About Section -->
+<section id="about" class="about-section section-padding">
+    <div class="container">
+        <div class="section-header text-center">
+            <span class="section-subtitle">تعرف علينا</span>
+            <h2 class="section-title">عن شاليه النرجس</h2>
+            <div class="divider mx-auto"></div>
+        </div>
+
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <div class="about-image">
+                    {% if chalet and chalet.get_main_image %}
+                    <img src="{{ chalet.get_main_image.image.url }}" alt="شاليه النرجس"
+                        class="img-fluid rounded-4 shadow">
+                    {% else %}
+                    <div class="placeholder-image rounded-4">
+                        <i class="fas fa-home"></i>
+                        <span>شاليه النرجس</span>
+                    </div>
+                    {% endif %}
+
+                    <!-- بطاقة السعر -->
+                    {% if chalet %}
+                    <div class="price-badge">
+                        <span class="price-label">ابتداءً من</span>
+                        <span class="price-value">{{ chalet.price_per_night|floatformat:0 }}</span>
+                        <span class="price-currency">دينار / ليلة</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="about-content">
+                    {% if chalet %}
+                    <p class="about-text">{{ chalet.description }}</p>
+                    {% else %}
+                    <p class="about-text">
+                        مرحباً بكم في شاليه النرجس، وجهتكم المثالية للاسترخاء والاستمتاع بأجمل الأوقات.
+                        نقدم لكم شاليه فاخر مجهز بأحدث المرافق والخدمات لضمان إقامة مريحة ومميزة.
+                    </p>
+                    {% endif %}
+
+                    <!-- معلومات سريعة -->
+                    <div class="about-info">
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-users animate-pulse-slow"></i>
+                            </div>
+                            <div class="info-text">
+                                <span class="info-value">{% if chalet %}{{ chalet.max_guests }}{% else %}10{% endif %}</span>
+                                <span class="info-label">ضيف كحد أقصى</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-map-marker-alt animate-float"></i>
+                            </div>
+                            <div class="info-text">
+                                <span class="info-value">موقع مميز</span>
+                                <span class="info-label">{% if chalet %}{{ chalet.location }}{% else %}العراق{% endif %}</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="info-text">
+                                <span class="info-value">5 نجوم</span>
+                                <span class="info-label">تقييم العملاء</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="{% url 'chalet:chalet_detail' %}" class="btn btn-primary btn-lg mt-4">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        عرض التفاصيل الكاملة
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- قسم الفيديو - Video Section -->
+{% if chalet.video or chalet.youtube_video %}
+<section class="video-section section-padding">
+    <div class="container">
+        <div class="section-header text-center">
+            <span class="section-subtitle">جولة افتراضية</span>
+            <h2 class="section-title">شاهد فيديو الشاليه</h2>
+            <div class="divider mx-auto"></div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="ratio ratio-16x9 shadow rounded-4 overflow-hidden">
+                    {% if chalet.video %}
+                    <video controls class="w-100 h-100" style="object-fit: cover;">
+                        <source src="{{ chalet.video.url }}" type="video/mp4">
+                        متصفحك لا يدعم تشغيل الفيديو.
+                    </video>
+                    {% elif chalet.youtube_video %}
+                    <iframe src="{{ chalet.get_youtube_embed_url }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- قسم المميزات - Features Section -->
+{% if features %}
+<section class="features-section section-padding bg-light">
+    <div class="container">
+        <div class="section-header text-center">
+            <span class="section-subtitle">ما نقدمه</span>
+            <h2 class="section-title">مميزات الشاليه</h2>
+            <div class="divider mx-auto"></div>
+        </div>
+
+        <div class="row">
+            {% for feature in features %}
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas {{ feature.icon }} animate-pulse-slow"></i>
+                    </div>
+                    <h5 class="feature-title">{{ feature.name }}</h5>
+                    {% if feature.description %}
+                    <p class="feature-desc">{{ feature.description }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{% url 'chalet:chalet_detail' %}" class="btn btn-outline-primary btn-lg">
+                عرض جميع المميزات
+                <i class="fas fa-arrow-left ms-2"></i>
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- قسم معرض الصور المصغر - Mini Gallery Section -->
+{% if images %}
+<section class="mini-gallery-section section-padding">
+    <div class="container">
+        <div class="section-header text-center">
+            <span class="section-subtitle">شاهد</span>
+            <h2 class="section-title">معرض الصور</h2>
+            <div class="divider mx-auto"></div>
+        </div>
+
+        <div class="row g-3">
+            {% for image in images|slice:":6" %}
+            <div class="col-lg-4 col-md-6">
+                <a href="{{ image.image.url }}" class="gallery-item glightbox" data-gallery="home-gallery"
+                    data-title="{{ image.caption|default:'شاليه النرجس' }}">
+                    <img src="{{ image.image.url }}" alt="{{ image.caption|default:'شاليه النرجس' }}" class="img-fluid">
+                    <div class="gallery-overlay">
+                        <i class="fas fa-search-plus"></i>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-5">
+            <a href="{% url 'chalet:gallery' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-images me-2"></i>
+                عرض جميع الصور
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- قسم الحجز السريع - Quick Booking CTA -->
+<section class="cta-section">
+    <div class="cta-overlay"></div>
+    <div class="container">
+        <div class="cta-content text-center">
+            <h2 class="cta-title">جاهز للحجز؟</h2>
+            <p class="cta-text">احجز الآن واستمتع بأفضل الأوقات مع العائلة والأصدقاء</p>
+            <div class="cta-buttons">
+                <a href="{% url 'chalet:booking' %}" class="btn btn-cta-primary">
+                    <i class="fas fa-calendar-check me-2"></i>
+                    احجز الآن
+                </a>
+                <a href="{% url 'chalet:contact' %}" class="btn btn-cta-secondary">
+                    <i class="fas fa-phone me-2"></i>
+                    تواصل معنا
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // تهيئة معرض الصور GLightbox
+    const lightbox = GLightbox({
+        selector: '.glightbox',
+        touchNavigation: true,
+        loop: true,
+        autoplayVideos: true,
+        closeButton: true,
+    });
+</script>
+{% endblock %}
