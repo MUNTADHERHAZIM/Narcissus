@@ -317,7 +317,9 @@ class Booking(models.Model):
     
     email = models.EmailField(
         verbose_name='البريد الإلكتروني',
-        help_text='أدخل بريدك الإلكتروني'
+        help_text='أدخل بريدك الإلكتروني (اختياري)',
+        blank=True,
+        null=True
     )
     
     phone = models.CharField(
@@ -325,6 +327,22 @@ class Booking(models.Model):
         validators=[phone_regex],
         verbose_name='رقم الهاتف',
         help_text='أدخل رقم هاتفك. مثال: 07701234567'
+    )
+    
+    # أوقات الحجز
+    TIME_CHOICES = [
+        ('morning', 'صباحي'),
+        ('evening', 'مسائي'),
+        ('night', 'ليلي'),
+        ('full_day', 'يوم كامل'),
+    ]
+    
+    booking_time = models.CharField(
+        max_length=20,
+        choices=TIME_CHOICES,
+        default='full_day',
+        verbose_name='وقت الحجز',
+        help_text='اختر وقت الحجز المناسب'
     )
     
     # تفاصيل الحجز
@@ -391,6 +409,8 @@ class Booking(models.Model):
         """حساب السعر الإجمالي تلقائياً"""
         if self.check_in and self.check_out and self.chalet:
             nights = (self.check_out - self.check_in).days
+            if nights == 0:
+                nights = 1  # لحجوزات نفس اليوم
             if nights > 0:
                 self.total_price = nights * self.chalet.price_per_night
         super().save(*args, **kwargs)
@@ -412,7 +432,7 @@ class Booking(models.Model):
         return status_classes.get(self.status, 'secondary')
     
     @classmethod
-    def check_availability(cls, chalet, check_in, check_out, exclude_booking_id=None):
+    def check_availability(cls, chalet, check_in, check_out, exclude_booking_id=None, booking_time='full_day'):
         """
         التحقق من توفر الشاليه في التواريخ المحددة
         
@@ -421,6 +441,7 @@ class Booking(models.Model):
             check_in: تاريخ الوصول
             check_out: تاريخ المغادرة
             exclude_booking_id: معرف الحجز المستثنى (للتعديل)
+            booking_time: وقت الحجز
         
         Returns:
             True إذا كان متاحاً، False إذا كان محجوزاً
@@ -428,37 +449,53 @@ class Booking(models.Model):
         # البحث عن حجوزات متداخلة
         overlapping = cls.objects.filter(
             chalet=chalet,
-            status__in=['pending', 'confirmed'],
-            check_in__lt=check_out,
-            check_out__gt=check_in
+            status='confirmed',
+            check_in__lte=check_out,
+            check_out__gte=check_in
         )
         
         # استثناء الحجز الحالي في حالة التعديل
         if exclude_booking_id:
             overlapping = overlapping.exclude(pk=exclude_booking_id)
         
-        return not overlapping.exists()
+        if overlapping.exists():
+            for booking in overlapping:
+                # إذا كان أحد الحجوزات يوماً كاملاً أو الحجز الجديد يوماً كاملاً، يوجد تعارض
+                if booking.booking_time == 'full_day' or booking_time == 'full_day':
+                    return False
+                # إذا كان نفس الوقت محجوزاً مسبقاً، يوجد تعارض
+                if booking.booking_time == booking_time:
+                    return False
+                    
+        return True
     
     @classmethod
     def get_booked_dates(cls, chalet):
         """
-        الحصول على التواريخ المحجوزة للشاليه
-        
-        Returns:
-            قائمة بالتواريخ المحجوزة
+        الحصول على التواريخ المحجوزة بالكامل
         """
         booked_dates = []
         bookings = cls.objects.filter(
             chalet=chalet,
-            status__in=['pending', 'confirmed'],
+            status='confirmed',
             check_out__gte=timezone.now().date()
         )
         
+        from collections import defaultdict
+        date_times = defaultdict(list)
+        
         for booking in bookings:
             current = booking.check_in
-            while current < booking.check_out:
-                booked_dates.append(current.strftime('%Y-%m-%d'))
+            # لحجوزات نفس اليوم يجب أن يتحقق لمرة واحدة على الأقل
+            end_date = booking.check_out if booking.check_out > booking.check_in else booking.check_in + timezone.timedelta(days=1)
+            while current < end_date:
+                date_str = current.strftime('%Y-%m-%d')
+                date_times[date_str].append(booking.booking_time)
                 current += timezone.timedelta(days=1)
+                
+        for date_str, times in date_times.items():
+            if 'full_day' in times or ('morning' in times and 'evening' in times and 'night' in times):
+                booked_dates.append(date_str)
         
         return booked_dates
 

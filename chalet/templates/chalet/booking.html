@@ -52,6 +52,19 @@
                                     تفاصيل الحجز
                                 </h5>
 
+                                <div class="mb-3">
+                                    <label for="{{ form.booking_time.id_for_label }}" class="form-label">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ form.booking_time.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.booking_time }}
+                                    {% if form.booking_time.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.booking_time.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="{{ form.check_in.id_for_label }}" class="form-label">
@@ -123,7 +136,7 @@
                                     <div class="col-md-6 mb-3">
                                         <label for="{{ form.email.id_for_label }}" class="form-label">
                                             <i class="fas fa-envelope me-1"></i>
-                                            {{ form.email.label }} <span class="text-danger">*</span>
+                                            {{ form.email.label }}
                                         </label>
                                         {{ form.email }}
                                         {% if form.email.errors %}
@@ -348,7 +361,6 @@
             if (selectedDates.length > 0) {
                 // تحديث الحد الأدنى لتاريخ المغادرة
                 const nextDay = new Date(selectedDates[0]);
-                nextDay.setDate(nextDay.getDate() + 1);
                 checkOutPicker.set('minDate', nextDay);
             }
             calculateTotal();
@@ -375,7 +387,11 @@
             const date1 = new Date(checkIn);
             const date2 = new Date(checkOut);
             const diffTime = Math.abs(date2 - date1);
-            const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            let nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (nights === 0) {
+                nights = 1; // لحجوزات نفس اليوم
+            }
 
             if (nights > 0) {
                 const total = nights * pricePerNight;

@@ -26,7 +26,7 @@ class BookingForm(forms.ModelForm):
     
     class Meta:
         model = Booking
-        fields = ['name', 'email', 'phone', 'check_in', 'check_out', 'guests', 'notes']
+        fields = ['name', 'email', 'phone', 'booking_time', 'check_in', 'check_out', 'guests', 'notes']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -36,7 +36,7 @@ class BookingForm(forms.ModelForm):
             'email': forms.EmailInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'example@email.com',
-                'required': True,
+                'required': False,
                 'dir': 'ltr',
             }),
             'phone': forms.TextInput(attrs={
@@ -44,6 +44,10 @@ class BookingForm(forms.ModelForm):
                 'placeholder': '07XXXXXXXXX',
                 'required': True,
                 'dir': 'ltr',
+            }),
+            'booking_time': forms.Select(attrs={
+                'class': 'form-select',
+                'required': True,
             }),
             'check_in': forms.DateInput(attrs={
                 'class': 'form-control',
@@ -69,8 +73,9 @@ class BookingForm(forms.ModelForm):
         }
         labels = {
             'name': 'الاسم الكامل',
-            'email': 'البريد الإلكتروني',
+            'email': 'البريد الإلكتروني (اختياري)',
             'phone': 'رقم الهاتف',
+            'booking_time': 'وقت الحجز',
             'check_in': 'تاريخ الوصول',
             'check_out': 'تاريخ المغادرة',
             'guests': 'عدد النزلاء',
@@ -82,7 +87,6 @@ class BookingForm(forms.ModelForm):
                 'max_length': 'الاسم طويل جداً',
             },
             'email': {
-                'required': 'يرجى إدخال البريد الإلكتروني',
                 'invalid': 'يرجى إدخال بريد إلكتروني صحيح',
             },
             'phone': {
@@ -131,8 +135,8 @@ class BookingForm(forms.ModelForm):
         check_in = self.cleaned_data.get('check_in')
         
         if check_out and check_in:
-            if check_out <= check_in:
-                raise ValidationError('تاريخ المغادرة يجب أن يكون بعد تاريخ الوصول')
+            if check_out < check_in:
+                raise ValidationError('تاريخ المغادرة يجب أن يكون بعد أو مساوي لتاريخ الوصول')
         
         return check_out
     
@@ -157,18 +161,44 @@ class BookingForm(forms.ModelForm):
         check_out = cleaned_data.get('check_out')
         
         # التحقق من توفر التواريخ
+        booking_time = cleaned_data.get('booking_time', 'full_day')
         if check_in and check_out and self.chalet:
             is_available = Booking.check_availability(
                 self.chalet,
                 check_in,
-                check_out
+                check_out,
+                booking_time=booking_time
             )
             
             if not is_available:
-                raise ValidationError(
-                    'عذراً، الشاليه محجوز في هذه الفترة. '
-                    'يرجى اختيار تواريخ أخرى.'
+                # جلب الحجوزات المتعارضة لمعرفة الأوقات المحجوزة
+                overlapping = Booking.objects.filter(
+                    chalet=self.chalet,
+                    status='confirmed',
+                    check_in__lte=check_out,
+                    check_out__gte=check_in
                 )
+                
+                booked_times_keys = set(overlapping.values_list('booking_time', flat=True))
+                time_labels = dict(Booking.TIME_CHOICES)
+                
+                # إذا كان اليوم محجوزاً بالكامل
+                if 'full_day' in booked_times_keys or booking_time == 'full_day':
+                    raise ValidationError('عذراً، الشاليه محجوز بالكامل في هذا التاريخ. يرجى اختيار تاريخ آخر.')
+                
+                # إعداد رسالة توضح الأوقات المتاحة
+                available_keys = [k for k, v in Booking.TIME_CHOICES if k not in booked_times_keys and k != 'full_day']
+                available_labels = [time_labels[k] for k in available_keys]
+                
+                req_time_label = time_labels.get(booking_time, 'هذا الوقت')
+                
+                msg = f'عذراً، الوقت ({req_time_label}) محجوز مسبقاً في هذا التاريخ. '
+                if available_labels:
+                    msg += f'الأوقات المتاحة هي: {"، ".join(available_labels)}.'
+                else:
+                    msg += 'جميع الأوقات محجوزة.'
+                    
+                raise ValidationError(msg)
         
         return cleaned_data
 
