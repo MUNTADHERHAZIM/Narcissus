@@ -13,6 +13,11 @@ from django.db import models
 from django.core.validators import MinValueValidator, RegexValidator
 from django.utils import timezone
 
+# مدقق رقم الهاتف العراقي (11 رقماً يبدأ بـ 07)
+phone_regex = RegexValidator(
+    regex=r'^07[0-9]{9}$',
+    message='أدخل رقم هاتف عراقي صحيح يتكون من 11 رقماً ويبدأ بـ 07. مثال: 07701234567'
+)
 
 class Chalet(models.Model):
     """
@@ -316,8 +321,8 @@ class Booking(models.Model):
     
     # مدقق رقم الهاتف العراقي
     phone_regex = RegexValidator(
-        regex=r'^(\+964|0)?7[0-9]{9}$',
-        message='أدخل رقم هاتف عراقي صحيح. مثال: 07701234567'
+        regex=r'^07[0-9]{9}$',
+        message='أدخل رقم هاتف عراقي صحيح يتكون من 11 رقماً ويبدأ بـ 07. مثال: 07701234567'
     )
     
     chalet = models.ForeignKey(
@@ -544,6 +549,7 @@ class ContactMessage(models.Model):
     
     phone = models.CharField(
         max_length=15,
+        validators=[phone_regex],
         verbose_name='رقم الهاتف',
         blank=True
     )

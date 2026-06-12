@@ -34,7 +34,15 @@
                     </p>
 
                     <!-- تفاصيل الحجز -->
-                    <div class="booking-details-card">
+                    <div class="booking-details-card" id="bookingReceipt">
+                        <!-- ترويسة الوصل للطباعة والتصدير -->
+                        <div class="receipt-export-header text-center mb-4 pb-3 border-bottom">
+                            <h3 class="fw-bold mb-1" style="color: var(--primary-dark);">شاليه النرجس</h3>
+                            <p class="text-muted small mb-1">الرفاهية والفخامة - Narjis Chalet</p>
+                            <p class="text-muted small mb-0">الهاتف: {{ site_settings.phone_number|default:"+964 770 000 0000" }} | البريد: {{ site_settings.email_address|default:"info@narjis-chalet.com" }}</p>
+                            <hr class="my-3" style="border-top: 2px dashed #ccc;">
+                        </div>
+
                         <h4 class="details-title">
                             <i class="fas fa-receipt me-2"></i>
                             تفاصيل الحجز
@@ -49,6 +57,11 @@
                             <div class="detail-item">
                                 <span class="detail-label">اسم الحاجز</span>
                                 <span class="detail-value">{{ booking.name }}</span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">رقم الهاتف</span>
+                                <span class="detail-value" dir="ltr">{{ booking.phone }}</span>
                             </div>
 
                             <div class="detail-item">
@@ -92,6 +105,13 @@
                             </div>
                             {% endif %}
                         </div>
+
+                        <!-- تذييل الوصل للطباعة والتصدير -->
+                        <div class="receipt-export-footer text-center mt-4 pt-3 border-top">
+                            <hr class="my-3" style="border-top: 2px dashed #ccc;">
+                            <p class="mb-1 fw-bold" style="color: var(--primary-dark);">نشكركم لاختياركم شاليه النرجس</p>
+                            <p class="text-muted small mb-0">نتمنى لكم إقامة سعيدة. يرجى إبراز هذا الإيصال عند الوصول.</p>
+                        </div>
                     </div>
 
                     <!-- معلومات الاتصال -->
@@ -130,6 +150,14 @@
                             <button onclick="window.print()" class="btn btn-outline-secondary">
                                 <i class="fas fa-print me-2"></i>
                                 طباعة الإيصال
+                            </button>
+                            <button onclick="downloadAsPDF()" class="btn btn-danger">
+                                <i class="fas fa-file-pdf me-2"></i>
+                                تحميل الوصل (PDF)
+                            </button>
+                            <button onclick="downloadAsImage()" class="btn btn-info text-white" style="background-color: var(--secondary-color); border-color: var(--secondary-color);">
+                                <i class="fas fa-image me-2"></i>
+                                حفظ الوصل كصورة
                             </button>
                         </div>
                     </div>
@@ -234,30 +262,90 @@
             page-break-inside: avoid;
         }
 
-        /* إضافة شعار نصي ومعلومات التواصل للطباعة */
-        .success-card::before {
-            content: "إيصال حجز - شاليه النرجس\000A الهاتف: +964 XXX XXX XXXX | البريد: info@narjis-chalet.com";
-            white-space: pre-wrap;
-            display: block;
-            font-size: 18px;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 15px;
-            color: #000;
-            border-bottom: 2px solid #000;
-            padding-bottom: 10px;
-        }
+    }
 
-        .success-card::after {
-            content: "نشكركم لاختياركم شاليه النرجس. يرجى إبراز هذا الإيصال عند الوصول.";
-            display: block;
-            text-align: center;
-            margin-top: 15px;
-            font-size: 13px;
-            font-style: italic;
-            border-top: 1px solid #eee;
-            padding-top: 8px;
+    /* إخفاء الهيدر والفوتر الخاصين بالتصدير والطباعة على الشاشة افتراضياً */
+    .receipt-export-header,
+    .receipt-export-footer {
+        display: none !important;
+    }
+    
+    /* إظهارهم عند الطباعة */
+    @media print {
+        .receipt-export-header,
+        .receipt-export-footer {
+            display: block !important;
         }
     }
+    
+    /* إظهارهم وتنسيق الكارد عند التصدير كـ PDF أو صورة */
+    .booking-details-card.is-exporting .receipt-export-header,
+    .booking-details-card.is-exporting .receipt-export-footer {
+        display: block !important;
+    }
+    
+    .booking-details-card.is-exporting {
+        padding: 30px !important;
+        background: #ffffff !important;
+        color: #333333 !important;
+        border: 2px solid var(--primary-dark, #2862b9) !important;
+        border-radius: 12px !important;
+        box-shadow: none !important;
+        width: 100% !important;
+        max-width: 600px !important;
+        margin: 0 auto !important;
+    }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- مكتبات تصدير وحفظ الوصل -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+    function downloadAsPDF() {
+        const element = document.getElementById('bookingReceipt');
+        
+        // تطبيق كلاس التصدير لإظهار الترويسة والتذييل
+        element.classList.add('is-exporting');
+        
+        const opt = {
+            margin:       10,
+            filename:     'وصل_حجز_شاليه_النرجس_#{{ booking.id }}.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        
+        html2pdf().set(opt).from(element).save().then(() => {
+            // إزالة كلاس التصدير لإعادة الوضع الطبيعي للشاشة
+            element.classList.remove('is-exporting');
+        }).catch(err => {
+            console.error('حدث خطأ أثناء تحميل ملف PDF:', err);
+            element.classList.remove('is-exporting');
+        });
+    }
+
+    function downloadAsImage() {
+        const element = document.getElementById('bookingReceipt');
+        
+        // تطبيق كلاس التصدير لإظهار الترويسة والتذييل
+        element.classList.add('is-exporting');
+        
+        html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#ffffff'
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'وصل_حجز_شاليه_النرجس_#{{ booking.id }}.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            element.classList.remove('is-exporting');
+        }).catch(err => {
+            console.error('حدث خطأ أثناء حفظ الصورة:', err);
+            element.classList.remove('is-exporting');
+        });
+    }
+</script>
 {% endblock %}

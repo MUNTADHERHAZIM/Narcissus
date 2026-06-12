@@ -39,6 +39,10 @@ class BookingForm(forms.ModelForm):
                 'placeholder': '07XXXXXXXXX',
                 'required': True,
                 'dir': 'ltr',
+                'pattern': '07[0-9]{9}',
+                'maxlength': '11',
+                'minlength': '11',
+                'title': 'يرجى إدخال رقم هاتف عراقي صحيح مكون من 11 رقماً ويبدأ بـ 07',
             }),
             'check_in': forms.DateInput(attrs={
                 'class': 'form-control',
@@ -183,6 +187,9 @@ class ContactForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': '07XXXXXXXXX',
                 'dir': 'ltr',
+                'pattern': '07[0-9]{9}',
+                'maxlength': '11',
+                'title': 'يرجى إدخال رقم هاتف عراقي صحيح مكون من 11 رقماً ويبدأ بـ 07',
             }),
             'subject': forms.TextInput(attrs={
                 'class': 'form-control',
