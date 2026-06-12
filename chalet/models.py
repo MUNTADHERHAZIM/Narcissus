@@ -478,7 +478,7 @@ class Booking(models.Model):
         bookings = cls.objects.filter(
             chalet=chalet,
             status='confirmed',
-            check_out__gte=timezone.now().date()
+            check_out__gte=timezone.localdate()
         )
         
         from collections import defaultdict

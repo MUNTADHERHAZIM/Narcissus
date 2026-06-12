@@ -138,12 +138,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (this.value) {
                 const checkInDate = new Date(this.value);
                 const minCheckOut = new Date(checkInDate);
-                minCheckOut.setDate(minCheckOut.getDate() + 1);
                 
                 checkOutInput.min = minCheckOut.toISOString().split('T')[0];
                 
                 // إذا كان تاريخ المغادرة أقل من تاريخ الوصول، إفراغه
-                if (checkOutInput.value && new Date(checkOutInput.value) <= checkInDate) {
+                if (checkOutInput.value && new Date(checkOutInput.value) < checkInDate) {
                     checkOutInput.value = '';
                 }
             }
@@ -154,8 +153,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const checkIn = new Date(checkInInput.value);
                 const checkOut = new Date(this.value);
                 
-                if (checkOut <= checkIn) {
-                    alert('تاريخ المغادرة يجب أن يكون بعد تاريخ الوصول');
+                if (checkOut < checkIn) {
+                    alert('تاريخ المغادرة لا يمكن أن يكون قبل تاريخ الوصول');
                     this.value = '';
                 }
             }

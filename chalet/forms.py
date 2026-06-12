@@ -110,7 +110,7 @@ class BookingForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         
         # تعيين الحد الأدنى لتاريخ الوصول (اليوم)
-        today = timezone.now().date().isoformat()
+        today = timezone.localdate().isoformat()
         self.fields['check_in'].widget.attrs['min'] = today
         self.fields['check_out'].widget.attrs['min'] = today
         
@@ -123,7 +123,7 @@ class BookingForm(forms.ModelForm):
         check_in = self.cleaned_data.get('check_in')
         
         if check_in:
-            today = timezone.now().date()
+            today = timezone.localdate()
             if check_in < today:
                 raise ValidationError('لا يمكن اختيار تاريخ في الماضي')
         
