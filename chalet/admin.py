@@ -53,12 +53,12 @@ class ChaletAdmin(admin.ModelAdmin):
     Chalet Admin Configuration
     """
     list_display = [
-        'name', 'location', 'price_per_night', 
+        'name', 'location', 'morning_price', 'evening_price', 'overnight_price', 
         'max_guests', 'is_active', 'created_at'
     ]
     list_filter = ['is_active', 'created_at']
     search_fields = ['name', 'location', 'description']
-    list_editable = ['is_active', 'price_per_night']
+    list_editable = ['is_active', 'morning_price', 'evening_price', 'overnight_price']
     readonly_fields = ['created_at', 'updated_at']
     
     fieldsets = (
@@ -66,7 +66,7 @@ class ChaletAdmin(admin.ModelAdmin):
             'fields': ('name', 'short_description', 'description', 'video', 'youtube_video')
         }),
         ('الموقع والسعر', {
-            'fields': ('location', 'location_url', 'price_per_night', 'max_guests')
+            'fields': ('location', 'location_url', 'morning_price', 'evening_price', 'overnight_price', 'max_guests')
         }),
         ('الحالة', {
             'fields': ('is_active',)
@@ -120,10 +120,10 @@ class BookingAdmin(admin.ModelAdmin):
     Booking Admin Configuration
     """
     list_display = [
-        'id', 'name', 'chalet', 'check_in', 'check_out', 
+        'id', 'name', 'chalet', 'check_in', 'get_shifts_display', 'event_type', 
         'guests', 'status_badge', 'total_price', 'created_at'
     ]
-    list_filter = ['status', 'chalet', 'check_in', 'created_at']
+    list_filter = ['status', 'chalet', 'check_in', 'event_type', 'created_at']
     search_fields = ['name', 'email', 'phone', 'chalet__name']
     readonly_fields = ['created_at', 'updated_at', 'total_price']
     date_hierarchy = 'created_at'
@@ -134,7 +134,7 @@ class BookingAdmin(admin.ModelAdmin):
             'fields': ('name', 'email', 'phone')
         }),
         ('تفاصيل الحجز', {
-            'fields': ('chalet', 'check_in', 'check_out', 'guests', 'notes')
+            'fields': ('chalet', 'check_in', 'event_type', 'shift_morning', 'shift_evening', 'shift_overnight', 'guests', 'notes')
         }),
         ('الحالة والسعر', {
             'fields': ('status', 'total_price')

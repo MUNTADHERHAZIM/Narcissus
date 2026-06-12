@@ -26,43 +26,41 @@ class BookingForm(forms.ModelForm):
     
     class Meta:
         model = Booking
-        fields = ['name', 'email', 'phone', 'booking_time', 'check_in', 'check_out', 'guests', 'notes']
+        fields = ['name', 'phone', 'check_in', 'shift_morning', 'shift_evening', 'shift_overnight', 'event_type', 'guests', 'notes']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'أدخل اسمك الكامل',
                 'required': True,
             }),
-            'email': forms.EmailInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'example@email.com',
-                'required': False,
-                'dir': 'ltr',
-            }),
+
             'phone': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': '07XXXXXXXXX',
                 'required': True,
                 'dir': 'ltr',
             }),
-            'booking_time': forms.Select(attrs={
-                'class': 'form-select',
-                'required': True,
-            }),
             'check_in': forms.DateInput(attrs={
                 'class': 'form-control',
                 'type': 'date',
                 'required': True,
             }),
-            'check_out': forms.DateInput(attrs={
-                'class': 'form-control',
-                'type': 'date',
+            'shift_morning': forms.CheckboxInput(attrs={
+                'class': 'form-check-input',
+            }),
+            'shift_evening': forms.CheckboxInput(attrs={
+                'class': 'form-check-input',
+            }),
+            'shift_overnight': forms.CheckboxInput(attrs={
+                'class': 'form-check-input',
+            }),
+            'event_type': forms.Select(attrs={
+                'class': 'form-select',
                 'required': True,
             }),
             'guests': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'min': '1',
-                'max': '50',
                 'required': True,
             }),
             'notes': forms.Textarea(attrs={
@@ -73,11 +71,13 @@ class BookingForm(forms.ModelForm):
         }
         labels = {
             'name': 'الاسم الكامل',
-            'email': 'البريد الإلكتروني (اختياري)',
+
             'phone': 'رقم الهاتف',
-            'booking_time': 'وقت الحجز',
-            'check_in': 'تاريخ الوصول',
-            'check_out': 'تاريخ المغادرة',
+            'check_in': 'تاريخ الحجز',
+            'shift_morning': 'الصباحي (8 ص - 3 م)',
+            'shift_evening': 'المسائي (5 م - 11 م)',
+            'shift_overnight': 'المبيت (12 ل - 6 ص)',
+            'event_type': 'نوع المناسبة',
             'guests': 'عدد النزلاء',
             'notes': 'ملاحظات',
         }
@@ -86,17 +86,12 @@ class BookingForm(forms.ModelForm):
                 'required': 'يرجى إدخال الاسم الكامل',
                 'max_length': 'الاسم طويل جداً',
             },
-            'email': {
-                'invalid': 'يرجى إدخال بريد إلكتروني صحيح',
-            },
+
             'phone': {
                 'required': 'يرجى إدخال رقم الهاتف',
             },
             'check_in': {
-                'required': 'يرجى تحديد تاريخ الوصول',
-            },
-            'check_out': {
-                'required': 'يرجى تحديد تاريخ المغادرة',
+                'required': 'يرجى تحديد تاريخ الحجز',
             },
             'guests': {
                 'required': 'يرجى تحديد عدد النزلاء',
@@ -112,11 +107,8 @@ class BookingForm(forms.ModelForm):
         # تعيين الحد الأدنى لتاريخ الوصول (اليوم)
         today = timezone.localdate().isoformat()
         self.fields['check_in'].widget.attrs['min'] = today
-        self.fields['check_out'].widget.attrs['min'] = today
         
-        # تعيين الحد الأقصى لعدد النزلاء
-        if self.chalet:
-            self.fields['guests'].widget.attrs['max'] = self.chalet.max_guests
+        # تم إزالة قيد الحد الأقصى للنزلاء بناء على طلب المستخدم
     
     def clean_check_in(self):
         """التحقق من تاريخ الوصول"""
@@ -129,76 +121,39 @@ class BookingForm(forms.ModelForm):
         
         return check_in
     
-    def clean_check_out(self):
-        """التحقق من تاريخ المغادرة"""
-        check_out = self.cleaned_data.get('check_out')
-        check_in = self.cleaned_data.get('check_in')
-        
-        if check_out and check_in:
-            if check_out < check_in:
-                raise ValidationError('تاريخ المغادرة يجب أن يكون بعد أو مساوي لتاريخ الوصول')
-        
-        return check_out
-    
     def clean_guests(self):
         """التحقق من عدد النزلاء"""
         guests = self.cleaned_data.get('guests')
         
-        if guests and self.chalet:
-            if guests > self.chalet.max_guests:
-                raise ValidationError(
-                    f'الحد الأقصى لعدد النزلاء هو {self.chalet.max_guests} شخص'
-                )
+        if guests:
             if guests < 1:
                 raise ValidationError('يجب أن يكون عدد النزلاء 1 على الأقل')
         
         return guests
-    
+        
     def clean(self):
         """التحقق الشامل من النموذج"""
         cleaned_data = super().clean()
         check_in = cleaned_data.get('check_in')
-        check_out = cleaned_data.get('check_out')
+        shift_morning = cleaned_data.get('shift_morning', False)
+        shift_evening = cleaned_data.get('shift_evening', False)
+        shift_overnight = cleaned_data.get('shift_overnight', False)
         
-        # التحقق من توفر التواريخ
-        booking_time = cleaned_data.get('booking_time', 'full_day')
-        if check_in and check_out and self.chalet:
+        if not (shift_morning or shift_evening or shift_overnight):
+            raise ValidationError('لا يتوفر حجز في هذا اليوم او الوقت المختار')
+            
+        # التحقق من توفر التواريخ والشفتات
+        if check_in and self.chalet:
             is_available = Booking.check_availability(
                 self.chalet,
                 check_in,
-                check_out,
-                booking_time=booking_time
+                shift_morning=shift_morning,
+                shift_evening=shift_evening,
+                shift_overnight=shift_overnight
             )
             
             if not is_available:
-                # جلب الحجوزات المتعارضة لمعرفة الأوقات المحجوزة
-                overlapping = Booking.objects.filter(
-                    chalet=self.chalet,
-                    status='confirmed',
-                    check_in__lte=check_out,
-                    check_out__gte=check_in
-                )
-                
-                booked_times_keys = set(overlapping.values_list('booking_time', flat=True))
-                time_labels = dict(Booking.TIME_CHOICES)
-                
-                # إذا كان اليوم محجوزاً بالكامل
-                if 'full_day' in booked_times_keys or booking_time == 'full_day':
-                    raise ValidationError('عذراً، الشاليه محجوز بالكامل في هذا التاريخ. يرجى اختيار تاريخ آخر.')
-                
-                # إعداد رسالة توضح الأوقات المتاحة
-                available_keys = [k for k, v in Booking.TIME_CHOICES if k not in booked_times_keys and k != 'full_day']
-                available_labels = [time_labels[k] for k in available_keys]
-                
-                req_time_label = time_labels.get(booking_time, 'هذا الوقت')
-                
-                msg = f'عذراً، الوقت ({req_time_label}) محجوز مسبقاً في هذا التاريخ. '
-                if available_labels:
-                    msg += f'الأوقات المتاحة هي: {"، ".join(available_labels)}.'
-                else:
-                    msg += 'جميع الأوقات محجوزة.'
-                    
-                raise ValidationError(msg)
+                raise ValidationError('لا يتوفر حجز في هذا اليوم او الوقت المختار')
         
         return cleaned_data
 

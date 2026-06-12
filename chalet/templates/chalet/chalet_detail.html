@@ -200,11 +200,25 @@
                         <h4 class="booking-card-title">معلومات الحجز</h4>
                     </div>
                     <div class="booking-card-body">
-                        <!-- السعر -->
-                        <div class="price-box">
-                            <span class="price-label">سعر الليلة</span>
+                        <!-- الأسعار -->
+                        <div class="price-box mb-3">
+                            <span class="price-label">سعر الشفت الصباحي</span>
                             <div class="price-amount">
-                                <span class="price-value">{{ chalet.price_per_night|floatformat:0 }}</span>
+                                <span class="price-value">{{ chalet.morning_price|floatformat:0 }}</span>
+                                <span class="price-currency">دينار</span>
+                            </div>
+                        </div>
+                        <div class="price-box mb-3">
+                            <span class="price-label">سعر الشفت المسائي</span>
+                            <div class="price-amount">
+                                <span class="price-value">{{ chalet.evening_price|floatformat:0 }}</span>
+                                <span class="price-currency">دينار</span>
+                            </div>
+                        </div>
+                        <div class="price-box">
+                            <span class="price-label">سعر شفت المبيت</span>
+                            <div class="price-amount">
+                                <span class="price-value">{{ chalet.overnight_price|floatformat:0 }}</span>
                                 <span class="price-currency">دينار</span>
                             </div>
                         </div>
@@ -213,15 +227,15 @@
                         <ul class="booking-info-list">
                             <li>
                                 <i class="fas fa-users text-primary"></i>
-                                <span>أقصى عدد نزلاء: <strong>{{ chalet.max_guests }} شخص</strong></span>
+                                <span>عدد النزلاء: <strong>مفتوح (غير محدد)</strong></span>
                             </li>
                             <li>
                                 <i class="fas fa-clock text-primary"></i>
-                                <span>الوصول: <strong>الساعة 2 بعد الظهر</strong></span>
+                                <span>الوصول والمغادرة: <strong>حسب الشفتات المختارة</strong></span>
                             </li>
                             <li>
-                                <i class="fas fa-sign-out-alt text-primary"></i>
-                                <span>المغادرة: <strong>الساعة 12 ظهراً</strong></span>
+                                <i class="fas fa-shield-alt text-primary"></i>
+                                <span>سياسة الإلغاء: <strong>العربون غير مسترد بعد تاكيد الحجز</strong></span>
                             </li>
                         </ul>
 
@@ -269,32 +283,7 @@
                             </div>
                         </div>
 
-                        <!-- تقويم التوفر -->
-                        <div class="availability-section mt-4 pt-3 border-top">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h5 class="mb-0" style="font-size: 1rem; color: var(--primary-dark); font-weight: 700;">
-                                    <i class="fas fa-calendar-alt me-2 text-primary"></i>
-                                    مواعيد التوفر
-                                </h5>
-                                <button class="btn btn-sm btn-link text-decoration-none p-0" type="button" data-bs-toggle="collapse" data-bs-target="#availabilityCollapse" aria-expanded="false" aria-controls="availabilityCollapse">
-                                    <i class="fas fa-chevron-down"></i>
-                                </button>
-                            </div>
-                            
-                            <div class="collapse show" id="availabilityCollapse">
-                                <div class="availability-container bg-light rounded-3 p-2">
-                                    <div id="availabilityCalendar"></div>
-                                </div>
-                                <div class="availability-legend mt-2 d-flex justify-content-center gap-3">
-                                    <small class="text-muted d-flex align-items-center gap-1">
-                                        <span class="legend-dot available"></span> متاح
-                                    </small>
-                                    <small class="text-muted d-flex align-items-center gap-1">
-                                        <span class="legend-dot booked"></span> محجوز
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- تم إزالة تقويم التوفر ليعتمد على الشفتات --><br>
                     </div>
                 </div>
             </div>
@@ -331,23 +320,7 @@
         loop: true,
     });
 
-    // تهيئة تقويم التوفر
-    const bookedDates = {{ booked_dates| safe }};
-
-    flatpickr("#availabilityCalendar", {
-        inline: true,
-        locale: "ar",
-        dateFormat: "Y-m-d",
-        minDate: "today",
-        disable: bookedDates,
-        disableMobile: true,
-        onDayCreate: function (dObj, dStr, fp, dayElem) {
-            const dateStr = dayElem.dateObj.toISOString().split('T')[0];
-            if (bookedDates.includes(dateStr)) {
-                dayElem.classList.add('booked-date');
-            }
-        }
-    });
+    // تمت إزالة منطق التقويم
 
     // تفعيل الصور المصغرة
     document.querySelectorAll('.thumbnail-img').forEach(function (img) {

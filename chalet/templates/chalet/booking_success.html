@@ -57,18 +57,18 @@
                             </div>
 
                             <div class="detail-item">
-                                <span class="detail-label">تاريخ الوصول</span>
+                                <span class="detail-label">تاريخ الحجز</span>
                                 <span class="detail-value">{{ booking.check_in|date:"d/m/Y" }}</span>
                             </div>
 
                             <div class="detail-item">
-                                <span class="detail-label">تاريخ المغادرة</span>
-                                <span class="detail-value">{{ booking.check_out|date:"d/m/Y" }}</span>
+                                <span class="detail-label">الشفتات المختارة</span>
+                                <span class="detail-value">{{ booking.get_shifts_display }}</span>
                             </div>
 
                             <div class="detail-item">
-                                <span class="detail-label">عدد الليالي</span>
-                                <span class="detail-value">{{ booking.get_nights }} ليلة</span>
+                                <span class="detail-label">نوع المناسبة</span>
+                                <span class="detail-value">{{ booking.event_type }}</span>
                             </div>
 
                             <div class="detail-item">
@@ -100,9 +100,7 @@
                             <i class="fas fa-phone-alt me-2"></i>
                             معلومات الاتصال المُدخلة
                         </h5>
-                        <p>
-                            <strong>البريد الإلكتروني:</strong> {{ booking.email }}
-                        </p>
+
                         <p>
                             <strong>رقم الهاتف:</strong> <span dir="ltr">{{ booking.phone }}</span>
                         </p>
@@ -112,24 +110,28 @@
                     <div class="info-note">
                         <i class="fas fa-info-circle me-2"></i>
                         <span>
-                            سيتم التواصل معك خلال 24 ساعة عبر الهاتف أو البريد الإلكتروني لتأكيد الحجز وإتمام الدفع.
+                            يرجى الضغط على زر الواتساب أدناه لإرسال تفاصيل حجزك إلينا لتأكيده.
                         </span>
                     </div>
 
                     <!-- أزرار -->
-                    <div class="success-actions d-print-none">
-                        <a href="{% url 'chalet:home' %}" class="btn btn-primary btn-lg">
-                            <i class="fas fa-home me-2"></i>
-                            العودة للرئيسية
+                    <div class="success-actions d-print-none text-center">
+                        {% if admin_whatsapp_link %}
+                        <a href="{{ admin_whatsapp_link }}" target="_blank" class="btn btn-success btn-lg d-block mb-3" style="background-color: #25D366; border-color: #25D366;">
+                            <i class="fab fa-whatsapp me-2"></i>
+                            أرسل الطلب عبر واتساب الآن
                         </a>
-                        <button onclick="window.print()" class="btn btn-success btn-lg">
-                            <i class="fas fa-print me-2"></i>
-                            طباعة الإيصال
-                        </button>
-                        <a href="{% url 'chalet:contact' %}" class="btn btn-outline-primary btn-lg">
-                            <i class="fas fa-envelope me-2"></i>
-                            تواصل معنا
-                        </a>
+                        {% endif %}
+                        <div class="d-flex justify-content-center gap-2 flex-wrap">
+                            <a href="{% url 'chalet:home' %}" class="btn btn-primary">
+                                <i class="fas fa-home me-2"></i>
+                                العودة للرئيسية
+                            </a>
+                            <button onclick="window.print()" class="btn btn-outline-secondary">
+                                <i class="fas fa-print me-2"></i>
+                                طباعة الإيصال
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

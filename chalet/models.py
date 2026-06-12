@@ -68,12 +68,31 @@ class Chalet(models.Model):
         null=True
     )
 
-    price_per_night = models.DecimalField(
+    morning_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        verbose_name='سعر الليلة',
-        help_text='السعر بالدينار العراقي',
-        validators=[MinValueValidator(0)]
+        verbose_name='سعر الشفت الصباحي',
+        help_text='السعر بالدينار العراقي لشفت (8 صباحاً - 3 ظهراً)',
+        validators=[MinValueValidator(0)],
+        default=0
+    )
+
+    evening_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name='سعر الشفت المسائي',
+        help_text='السعر بالدينار العراقي لشفت (5 عصراً - 11 ليلاً)',
+        validators=[MinValueValidator(0)],
+        default=0
+    )
+
+    overnight_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name='سعر شفت المبيت',
+        help_text='السعر بالدينار العراقي لشفت (12 منتصف الليل - 6 صباحاً)',
+        validators=[MinValueValidator(0)],
+        default=0
     )
     
     max_guests = models.PositiveIntegerField(
@@ -329,31 +348,44 @@ class Booking(models.Model):
         help_text='أدخل رقم هاتفك. مثال: 07701234567'
     )
     
-    # أوقات الحجز
-    TIME_CHOICES = [
-        ('morning', 'صباحي'),
-        ('evening', 'مسائي'),
-        ('night', 'ليلي'),
-        ('full_day', 'يوم كامل'),
-    ]
-    
-    booking_time = models.CharField(
-        max_length=20,
-        choices=TIME_CHOICES,
-        default='full_day',
-        verbose_name='وقت الحجز',
-        help_text='اختر وقت الحجز المناسب'
-    )
-    
     # تفاصيل الحجز
     check_in = models.DateField(
-        verbose_name='تاريخ الوصول',
-        help_text='تاريخ بداية الإقامة'
+        verbose_name='تاريخ الحجز',
+        help_text='تاريخ الإقامة'
     )
     
-    check_out = models.DateField(
-        verbose_name='تاريخ المغادرة',
-        help_text='تاريخ نهاية الإقامة'
+    # الشفتات
+    shift_morning = models.BooleanField(
+        default=False,
+        verbose_name='الصباحي (8 ص - 3 م)'
+    )
+    
+    shift_evening = models.BooleanField(
+        default=False,
+        verbose_name='المسائي (5 م - 11 م)'
+    )
+    
+    shift_overnight = models.BooleanField(
+        default=False,
+        verbose_name='المبيت (12 ل - 6 ص)'
+    )
+
+    # نوع المناسبة
+    EVENT_CHOICES = [
+        ('عائلية', 'عائلية'),
+        ('شباب', 'شباب'),
+        ('عيد ميلاد', 'عيد ميلاد'),
+        ('حنة', 'حنة'),
+        ('سفرة مدرسية', 'سفرة مدرسية'),
+        ('حفل تخرج','حفل تخرج'),
+        ('أخرى', 'أخرى'),
+    ]
+    
+    event_type = models.CharField(
+        max_length=50,
+        choices=EVENT_CHOICES,
+        default='عائلية',
+        verbose_name='نوع المناسبة'
     )
     
     guests = models.PositiveIntegerField(
@@ -403,23 +435,33 @@ class Booking(models.Model):
         ordering = ['-created_at']
     
     def __str__(self):
-        return f"حجز {self.name} - {self.check_in} إلى {self.check_out}"
+        shifts = []
+        if self.shift_morning: shifts.append('صباحي')
+        if self.shift_evening: shifts.append('مسائي')
+        if self.shift_overnight: shifts.append('مبيت')
+        shifts_str = " + ".join(shifts) if shifts else "بدون شفت"
+        return f"حجز {self.name} - {self.check_in} ({shifts_str})"
     
     def save(self, *args, **kwargs):
-        """حساب السعر الإجمالي تلقائياً"""
-        if self.check_in and self.check_out and self.chalet:
-            nights = (self.check_out - self.check_in).days
-            if nights == 0:
-                nights = 1  # لحجوزات نفس اليوم
-            if nights > 0:
-                self.total_price = nights * self.chalet.price_per_night
+        """حساب السعر الإجمالي تلقائياً عند الإنشاء فقط، للسماح للآدمن بتعديله يدوياً أو عند تغير الأسعار العامة"""
+        if (not self.pk or self.total_price is None) and self.chalet:
+            total = 0
+            if self.shift_morning:
+                total += self.chalet.morning_price
+            if self.shift_evening:
+                total += self.chalet.evening_price
+            if self.shift_overnight:
+                total += self.chalet.overnight_price
+            self.total_price = total
         super().save(*args, **kwargs)
     
-    def get_nights(self):
-        """حساب عدد الليالي"""
-        if self.check_in and self.check_out:
-            return (self.check_out - self.check_in).days
-        return 0
+    def get_shifts_display(self):
+        """إرجاع قائمة بأسماء الشفتات المحجوزة"""
+        shifts = []
+        if self.shift_morning: shifts.append('الصباحي (8 ص - 3 م)')
+        if self.shift_evening: shifts.append('المسائي (5 م - 11 م)')
+        if self.shift_overnight: shifts.append('المبيت (12 ل - 6 ص)')
+        return "، ".join(shifts)
     
     def get_status_display_class(self):
         """إرجاع كلاس CSS حسب حالة الحجز"""
@@ -432,72 +474,57 @@ class Booking(models.Model):
         return status_classes.get(self.status, 'secondary')
     
     @classmethod
-    def check_availability(cls, chalet, check_in, check_out, exclude_booking_id=None, booking_time='full_day'):
+    def check_availability(cls, chalet, check_in, shift_morning=False, shift_evening=False, shift_overnight=False, exclude_booking_id=None):
         """
-        التحقق من توفر الشاليه في التواريخ المحددة
-        
-        Args:
-            chalet: الشاليه المراد التحقق منه
-            check_in: تاريخ الوصول
-            check_out: تاريخ المغادرة
-            exclude_booking_id: معرف الحجز المستثنى (للتعديل)
-            booking_time: وقت الحجز
-        
-        Returns:
-            True إذا كان متاحاً، False إذا كان محجوزاً
+        التحقق من توفر الشاليه في التاريخ والشفتات المحددة
         """
-        # البحث عن حجوزات متداخلة
-        overlapping = cls.objects.filter(
+        if not (shift_morning or shift_evening or shift_overnight):
+            return False # يجب اختيار شفت واحد على الأقل
+            
+        # البحث عن الحجوزات في نفس اليوم
+        existing_bookings = cls.objects.filter(
             chalet=chalet,
-            status='confirmed',
-            check_in__lte=check_out,
-            check_out__gte=check_in
+            status='confirmed', # نعتبر الحجوزات المؤكدة فقط محجوزة
+            check_in=check_in
         )
         
         # استثناء الحجز الحالي في حالة التعديل
         if exclude_booking_id:
-            overlapping = overlapping.exclude(pk=exclude_booking_id)
+            existing_bookings = existing_bookings.exclude(pk=exclude_booking_id)
         
-        if overlapping.exists():
-            for booking in overlapping:
-                # إذا كان أحد الحجوزات يوماً كاملاً أو الحجز الجديد يوماً كاملاً، يوجد تعارض
-                if booking.booking_time == 'full_day' or booking_time == 'full_day':
-                    return False
-                # إذا كان نفس الوقت محجوزاً مسبقاً، يوجد تعارض
-                if booking.booking_time == booking_time:
-                    return False
+        for booking in existing_bookings:
+            if shift_morning and booking.shift_morning:
+                return False
+            if shift_evening and booking.shift_evening:
+                return False
+            if shift_overnight and booking.shift_overnight:
+                return False
                     
         return True
     
     @classmethod
-    def get_booked_dates(cls, chalet):
+    def get_booked_shifts(cls, chalet, date):
         """
-        الحصول على التواريخ المحجوزة بالكامل
+        الحصول على الشفتات المحجوزة في يوم معين
         """
-        booked_dates = []
         bookings = cls.objects.filter(
             chalet=chalet,
             status='confirmed',
-            check_out__gte=timezone.localdate()
+            check_in=date
         )
         
-        from collections import defaultdict
-        date_times = defaultdict(list)
+        booked = {
+            'morning': False,
+            'evening': False,
+            'overnight': False
+        }
         
         for booking in bookings:
-            current = booking.check_in
-            # لحجوزات نفس اليوم يجب أن يتحقق لمرة واحدة على الأقل
-            end_date = booking.check_out if booking.check_out > booking.check_in else booking.check_in + timezone.timedelta(days=1)
-            while current < end_date:
-                date_str = current.strftime('%Y-%m-%d')
-                date_times[date_str].append(booking.booking_time)
-                current += timezone.timedelta(days=1)
-                
-        for date_str, times in date_times.items():
-            if 'full_day' in times or ('morning' in times and 'evening' in times and 'night' in times):
-                booked_dates.append(date_str)
-        
-        return booked_dates
+            if booking.shift_morning: booked['morning'] = True
+            if booking.shift_evening: booked['evening'] = True
+            if booking.shift_overnight: booked['overnight'] = True
+            
+        return booked
 
 
 class ContactMessage(models.Model):

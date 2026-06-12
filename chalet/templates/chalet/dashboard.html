@@ -326,8 +326,9 @@
                             </td>
                             <td>
                                 <div class="d-flex flex-column">
-                                    <span><strong>من:</strong> {{ booking.check_in|date:"Y/m/d" }}</span>
-                                    <span><strong>إلى:</strong> {{ booking.check_out|date:"Y/m/d" }}</span>
+                                    <span><strong>التاريخ:</strong> {{ booking.check_in|date:"Y/m/d" }}</span>
+                                    <span><strong>الشفتات:</strong> {{ booking.get_shifts_display }}</span>
+                                    <span><strong>المناسبة:</strong> {{ booking.event_type }}</span>
                                 </div>
                             </td>
                             <td>
@@ -392,12 +393,12 @@
                 
                 <div class="mobile-dates row text-center">
                     <div class="col-6 border-end border-light">
-                        <small class="text-muted d-block mb-1">الوصول</small>
+                        <small class="text-muted d-block mb-1">التاريخ</small>
                         <strong>{{ booking.check_in|date:"Y/m/d" }}</strong>
                     </div>
                     <div class="col-6">
-                        <small class="text-muted d-block mb-1">المغادرة</small>
-                        <strong>{{ booking.check_out|date:"Y/m/d" }}</strong>
+                        <small class="text-muted d-block mb-1">الشفتات</small>
+                        <strong>{{ booking.get_shifts_display }}</strong>
                     </div>
                 </div>
 

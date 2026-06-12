@@ -53,43 +53,56 @@
                                 </h5>
 
                                 <div class="mb-3">
-                                    <label for="{{ form.booking_time.id_for_label }}" class="form-label">
-                                        <i class="fas fa-clock me-1"></i>
-                                        {{ form.booking_time.label }} <span class="text-danger">*</span>
+                                    <label for="{{ form.event_type.id_for_label }}" class="form-label">
+                                        <i class="fas fa-glass-cheers me-1"></i>
+                                        {{ form.event_type.label }} <span class="text-danger">*</span>
                                     </label>
-                                    {{ form.booking_time }}
-                                    {% if form.booking_time.errors %}
+                                    {{ form.event_type }}
+                                    {% if form.event_type.errors %}
                                     <div class="invalid-feedback d-block">
-                                        {% for error in form.booking_time.errors %}{{ error }}{% endfor %}
+                                        {% for error in form.event_type.errors %}{{ error }}{% endfor %}
                                     </div>
                                     {% endif %}
                                 </div>
 
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="{{ form.check_in.id_for_label }}" class="form-label">
-                                            <i class="fas fa-sign-in-alt me-1"></i>
-                                            {{ form.check_in.label }} <span class="text-danger">*</span>
-                                        </label>
-                                        {{ form.check_in }}
-                                        {% if form.check_in.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.check_in.errors %}{{ error }}{% endfor %}
-                                        </div>
-                                        {% endif %}
+                                <div class="mb-3">
+                                    <label for="{{ form.check_in.id_for_label }}" class="form-label">
+                                        <i class="fas fa-calendar-day me-1"></i>
+                                        {{ form.check_in.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.check_in }}
+                                    {% if form.check_in.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.check_in.errors %}{{ error }}{% endfor %}
                                     </div>
+                                    {% endif %}
+                                </div>
 
-                                    <div class="col-md-6 mb-3">
-                                        <label for="{{ form.check_out.id_for_label }}" class="form-label">
-                                            <i class="fas fa-sign-out-alt me-1"></i>
-                                            {{ form.check_out.label }} <span class="text-danger">*</span>
-                                        </label>
-                                        {{ form.check_out }}
-                                        {% if form.check_out.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.check_out.errors %}{{ error }}{% endfor %}
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-clock me-1"></i>
+                                        الشفتات المتاحة <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="d-flex flex-wrap gap-3">
+                                        <div class="form-check">
+                                            {{ form.shift_morning }}
+                                            <label class="form-check-label" for="{{ form.shift_morning.id_for_label }}">
+                                                {{ form.shift_morning.label }}
+                                            </label>
                                         </div>
-                                        {% endif %}
+                                        <div class="form-check">
+                                            {{ form.shift_evening }}
+                                            <label class="form-check-label" for="{{ form.shift_evening.id_for_label }}">
+                                                {{ form.shift_evening.label }}
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            {{ form.shift_overnight }}
+                                            <label class="form-check-label"
+                                                for="{{ form.shift_overnight.id_for_label }}">
+                                                {{ form.shift_overnight.label }}
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -104,9 +117,6 @@
                                         {% for error in form.guests.errors %}{{ error }}{% endfor %}
                                     </div>
                                     {% endif %}
-                                    <small class="text-muted">
-                                        الحد الأقصى: {% if chalet %}{{ chalet.max_guests }}{% else %}10{% endif %} شخص
-                                    </small>
                                 </div>
                             </div>
 
@@ -132,32 +142,17 @@
                                     {% endif %}
                                 </div>
 
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="{{ form.email.id_for_label }}" class="form-label">
-                                            <i class="fas fa-envelope me-1"></i>
-                                            {{ form.email.label }}
-                                        </label>
-                                        {{ form.email }}
-                                        {% if form.email.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.email.errors %}{{ error }}{% endfor %}
-                                        </div>
-                                        {% endif %}
+                                <div class="mb-3">
+                                    <label for="{{ form.phone.id_for_label }}" class="form-label">
+                                        <i class="fas fa-phone me-1"></i>
+                                        {{ form.phone.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.phone }}
+                                    {% if form.phone.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.phone.errors %}{{ error }}{% endfor %}
                                     </div>
-
-                                    <div class="col-md-6 mb-3">
-                                        <label for="{{ form.phone.id_for_label }}" class="form-label">
-                                            <i class="fas fa-phone me-1"></i>
-                                            {{ form.phone.label }} <span class="text-danger">*</span>
-                                        </label>
-                                        {{ form.phone }}
-                                        {% if form.phone.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.phone.errors %}{{ error }}{% endfor %}
-                                        </div>
-                                        {% endif %}
-                                    </div>
+                                    {% endif %}
                                 </div>
 
                                 <div class="mb-3">
@@ -213,11 +208,25 @@
 
                         <h5 class="mb-3">{{ chalet.name }}</h5>
 
-                        <!-- السعر -->
-                        <div class="price-box">
-                            <span class="price-label">سعر الليلة</span>
+                        <!-- الأسعار -->
+                        <div class="price-box mb-3">
+                            <span class="price-label">سعر الشفت الصباحي</span>
                             <div class="price-amount">
-                                <span class="price-value">{{ chalet.price_per_night|floatformat:0 }}</span>
+                                <span class="price-value">{{ chalet.morning_price|floatformat:0 }}</span>
+                                <span class="price-currency">دينار</span>
+                            </div>
+                        </div>
+                        <div class="price-box mb-3">
+                            <span class="price-label">سعر الشفت المسائي</span>
+                            <div class="price-amount">
+                                <span class="price-value">{{ chalet.evening_price|floatformat:0 }}</span>
+                                <span class="price-currency">دينار</span>
+                            </div>
+                        </div>
+                        <div class="price-box">
+                            <span class="price-label">سعر شفت المبيت</span>
+                            <div class="price-amount">
+                                <span class="price-value">{{ chalet.overnight_price|floatformat:0 }}</span>
                                 <span class="price-currency">دينار</span>
                             </div>
                         </div>
@@ -225,17 +234,8 @@
                         <!-- حاسبة السعر -->
                         <div class="price-calculator mt-3" id="priceCalculator" style="display: none;">
                             <hr>
-                            <div class="calc-row">
-                                <span>عدد الليالي:</span>
-                                <span id="nightsCount">0</span>
-                            </div>
-                            <div class="calc-row">
-                                <span>سعر الليلة:</span>
-                                <span>{{ chalet.price_per_night|floatformat:0 }} دينار</span>
-                            </div>
-                            <hr>
                             <div class="calc-row total">
-                                <span>المجموع:</span>
+                                <span>المجموع الإجمالي:</span>
                                 <span id="totalPrice">0 دينار</span>
                             </div>
                         </div>
@@ -247,21 +247,31 @@
                                 معلومات مهمة
                             </h6>
                             <ul class="notes-list">
-                                <li>
+                                <li class="align-items-start">
+                                    <i class="fas fa-clock text-primary mt-1"></i>
+                                    <div>
+                                        أوقات الشفتات:
+                                        <ul class="list-unstyled mb-0 mt-1 small text-muted">
+                                            <li>- الصباحي: 8:00 ص إلى 3:00 م</li>
+                                            <li>- المسائي: 5:00 م إلى 11:00 م</li>
+                                            <li>- المبيت: 12:00 ل إلى 6:00 ص</li>
+                                        </ul>
+                                    </div>
+                                </li>
+                                <li class="mt-2">
                                     <i class="fas fa-check text-success"></i>
-                                    الوصول: الساعة 2:00 بعد الظهر
+                                    <span>الوصول والمغادرة حسب الشفتات المختارة</span>
                                 </li>
                                 <li>
-                                    <i class="fas fa-check text-success"></i>
-                                    المغادرة: الساعة 12:00 ظهراً
+                                    <i class="fas fa-shield-alt text-success"></i>
+                                    <span>يُطلب دفع عربون (مقدم) لتأكيد الحجز</span>
                                 </li>
-                                <li>
-                                    <i class="fas fa-check text-success"></i>
-                                    يُطلب دفعة مقدمة للتأكيد
-                                </li>
-                                <li>
-                                    <i class="fas fa-check text-success"></i>
-                                    إلغاء مجاني قبل 48 ساعة
+                                <li class="align-items-start">
+                                    <i class="fas fa-exclamation-triangle text-danger mt-1"></i>
+                                    <div>
+                                        <strong>سياسة الإلغاء:</strong> مبلغ العربون <strong>لا يسترجع بعد تأكيد الحجز
+                                        </strong>
+                                    </div>
                                 </li>
                             </ul>
                         </div>
@@ -290,35 +300,7 @@
                             </div>
                         </div>
 
-                        <!-- مواعيد التوفر -->
-                        <div class="availability-section mt-4 pt-3 border-top">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h5 class="mb-0" style="font-size: 1rem; color: var(--primary-dark); font-weight: 700;">
-                                    <i class="fas fa-calendar-alt me-2 text-primary"></i>
-                                    مواعيد التوفر
-                                </h5>
-                                <button class="btn btn-sm btn-link text-decoration-none p-0" type="button"
-                                    data-bs-toggle="collapse" data-bs-target="#availabilityCollapse"
-                                    aria-expanded="false" aria-controls="availabilityCollapse">
-                                    <i class="fas fa-chevron-down"></i>
-                                </button>
-                            </div>
-
-                            <div class="collapse show" id="availabilityCollapse">
-                                <div class="availability-container bg-light rounded-3 p-2">
-                                    <div id="bookingCalendar"></div>
-                                </div>
-                                <div class="availability-legend mt-2 d-flex justify-content-center gap-3">
-                                    <small class="text-muted d-flex align-items-center gap-1">
-                                        <span class="legend-dot available"></span> متاح
-                                    </small>
-                                    <small class="text-muted d-flex align-items-center gap-1">
-                                        <span class="legend-dot booked"
-                                            style="background-color: #ef4444; border: 1px solid #ef4444;"></span> مشغول
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- تم إزالة تقويم التوفر ليعتمد على الشفتات --><br>
                     </div>
                 </div>
                 {% endif %}
@@ -331,75 +313,90 @@
 
 {% block extra_js %}
 <script>
-    // التواريخ المحجوزة
-    const bookedDates = {{ booked_dates| safe }};
-    const pricePerNight = {% if chalet %}{{ chalet.price_per_night }} {% else %} 0{% endif %};
+    const chaletId = {{ chalet.id }};
+    const morningPrice = {% if chalet %}{ { chalet.morning_price } } {% else %} 0{% endif %};
+    const eveningPrice = {% if chalet %}{ { chalet.evening_price } } {% else %} 0{% endif %};
+    const overnightPrice = {% if chalet %}{ { chalet.overnight_price } } {% else %} 0{% endif %};
 
-    // تهيئة تقويم التوفر
-    const bookingCalendar = flatpickr("#bookingCalendar", {
-        inline: true,
-        locale: "ar",
-        dateFormat: "Y-m-d",
-        minDate: "today",
-        disable: bookedDates,
-        disableMobile: true,
+    const morningCb = document.getElementById('id_shift_morning');
+    const eveningCb = document.getElementById('id_shift_evening');
+    const overnightCb = document.getElementById('id_shift_overnight');
+
+    [morningCb, eveningCb, overnightCb].forEach(cb => {
+        cb.addEventListener('change', calculateTotal);
     });
 
-    // إصلاح مشكلة ظهور التقويم عند الفتح (Refresh on expand)
-    const availabilityCollapse = document.getElementById('availabilityCollapse');
-    availabilityCollapse.addEventListener('shown.bs.collapse', function () {
-        bookingCalendar.redraw();
-    });
-
-    // تهيئة منتقي تاريخ الوصول
+    // تهيئة منتقي التاريخ
     const checkInPicker = flatpickr("#id_check_in", {
         locale: "ar",
         dateFormat: "Y-m-d",
         minDate: "today",
-        disable: bookedDates,
         onChange: function (selectedDates, dateStr) {
-            if (selectedDates.length > 0) {
-                // تحديث الحد الأدنى لتاريخ المغادرة
-                const nextDay = new Date(selectedDates[0]);
-                checkOutPicker.set('minDate', nextDay);
-            }
+            checkAvailability(dateStr);
             calculateTotal();
         }
     });
 
-    // تهيئة منتقي تاريخ المغادرة
-    const checkOutPicker = flatpickr("#id_check_out", {
-        locale: "ar",
-        dateFormat: "Y-m-d",
-        minDate: "today",
-        disable: bookedDates,
-        onChange: function () {
-            calculateTotal();
+    function checkAvailability(dateStr) {
+        if (!dateStr) return;
+
+        fetch(`/api/booked-shifts/${chaletId}/?date=${dateStr}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.booked_shifts) {
+                    const shifts = data.booked_shifts;
+                    updateShiftAvailability(morningCb, shifts.morning);
+                    updateShiftAvailability(eveningCb, shifts.evening);
+                    updateShiftAvailability(overnightCb, shifts.overnight);
+                    calculateTotal();
+                }
+            })
+            .catch(error => console.error('Error fetching availability:', error));
+    }
+
+    function updateShiftAvailability(checkbox, isBooked) {
+        const label = checkbox.nextElementSibling;
+        if (!label.dataset.originalText) {
+            label.dataset.originalText = label.textContent.trim();
         }
-    });
+
+        if (isBooked) {
+            checkbox.checked = false;
+            checkbox.disabled = true;
+            checkbox.parentElement.style.opacity = '1';
+            checkbox.parentElement.style.textDecoration = 'none';
+            label.style.color = '#dc3545';
+            label.style.fontWeight = 'bold';
+            label.textContent = label.dataset.originalText + ' (غير متوفر)';
+        } else {
+            checkbox.disabled = false;
+            checkbox.parentElement.style.opacity = '1';
+            checkbox.parentElement.style.textDecoration = 'none';
+            label.style.color = '';
+            label.style.fontWeight = 'normal';
+            label.textContent = label.dataset.originalText;
+        }
+    }
 
     // حساب السعر الإجمالي
     function calculateTotal() {
-        const checkIn = document.getElementById('id_check_in').value;
-        const checkOut = document.getElementById('id_check_out').value;
+        let total = 0;
 
-        if (checkIn && checkOut) {
-            const date1 = new Date(checkIn);
-            const date2 = new Date(checkOut);
-            const diffTime = Math.abs(date2 - date1);
-            let nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
-            if (nights === 0) {
-                nights = 1; // لحجوزات نفس اليوم
-            }
+        if (morningCb.checked && !morningCb.disabled) total += morningPrice;
+        if (eveningCb.checked && !eveningCb.disabled) total += eveningPrice;
+        if (overnightCb.checked && !overnightCb.disabled) total += overnightPrice;
 
-            if (nights > 0) {
-                const total = nights * pricePerNight;
-                document.getElementById('nightsCount').textContent = nights;
-                document.getElementById('totalPrice').textContent = total.toLocaleString('ar-IQ') + ' دينار';
-                document.getElementById('priceCalculator').style.display = 'block';
-            }
+        if (total > 0) {
+            document.getElementById('totalPrice').textContent = total.toLocaleString('ar-IQ') + ' دينار';
+            document.getElementById('priceCalculator').style.display = 'block';
+        } else {
+            document.getElementById('priceCalculator').style.display = 'none';
         }
+    }
+
+    // Check initially if date is present
+    if (document.getElementById('id_check_in').value) {
+        checkAvailability(document.getElementById('id_check_in').value);
     }
 </script>
 {% endblock %}

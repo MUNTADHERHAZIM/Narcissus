@@ -97,8 +97,8 @@
                     {% if chalet %}
                     <div class="price-badge">
                         <span class="price-label">ابتداءً من</span>
-                        <span class="price-value">{{ chalet.price_per_night|floatformat:0 }}</span>
-                        <span class="price-currency">دينار / ليلة</span>
+                        <span class="price-value">{{ chalet.morning_price|floatformat:0 }}</span>
+                        <span class="price-currency">دينار / شفت</span>
                     </div>
                     {% endif %}
                 </div>
@@ -122,8 +122,8 @@
                                 <i class="fas fa-users animate-pulse-slow"></i>
                             </div>
                             <div class="info-text">
-                                <span class="info-value">{% if chalet %}{{ chalet.max_guests }}{% else %}10{% endif %}</span>
-                                <span class="info-label">ضيف كحد أقصى</span>
+                                <span class="info-value">مفتوح</span>
+                                <span class="info-label">عدد الضيوف</span>
                             </div>
                         </div>
                         <div class="info-item">

@@ -92,15 +92,11 @@ def chalet_detail(request, pk=None):
     features = chalet.features.all()
     reviews = chalet.reviews.filter(is_active=True)
     
-    # الحصول على التواريخ المحجوزة
-    booked_dates = Booking.get_booked_dates(chalet)
-    
     context = {
         'chalet': chalet,
         'images': images,
         'features': features,
         'reviews': reviews,
-        'booked_dates': booked_dates,
         'page_title': f'تفاصيل {chalet.name}',
     }
     
@@ -146,13 +142,9 @@ def booking(request, pk=None):
     else:
         form = BookingForm(chalet=chalet)
     
-    # الحصول على التواريخ المحجوزة
-    booked_dates = Booking.get_booked_dates(chalet)
-    
     context = {
         'chalet': chalet,
         'form': form,
-        'booked_dates': booked_dates,
         'page_title': 'حجز الشاليه',
     }
     
@@ -168,8 +160,28 @@ def booking_success(request, booking_id):
     """
     booking_obj = get_object_or_404(Booking, id=booking_id)
     
+    from .models import SiteSettings
+    import urllib.parse
+    
+    settings = SiteSettings.get_settings()
+    admin_phone = settings.whatsapp_number.replace('+', '').replace(' ', '')
+    
+    # رسالة للآدمن
+    whatsapp_msg = f"""مرحباً، أود تأكيد حجزي في شاليه النرجس:
+👤 الاسم: {booking_obj.name}
+📱 رقمي: {booking_obj.phone}
+📅 تاريخ الحجز: {booking_obj.check_in.strftime('%Y/%m/%d')}
+🕒 الشفتات: {booking_obj.get_shifts_display()}
+🎉 نوع المناسبة: {booking_obj.event_type}
+💰 المبلغ الإجمالي: {booking_obj.total_price} د.ع
+"""
+    
+    encoded_msg = urllib.parse.quote(whatsapp_msg)
+    admin_whatsapp_link = f"https://wa.me/{admin_phone}?text={encoded_msg}"
+    
     context = {
         'booking': booking_obj,
+        'admin_whatsapp_link': admin_whatsapp_link,
         'page_title': 'تم الحجز بنجاح',
     }
     
@@ -210,18 +222,26 @@ def contact(request):
 
 
 @require_GET
-def get_booked_dates(request, pk):
+def check_shifts_availability(request, pk):
     """
-    API للحصول على التواريخ المحجوزة
-    API endpoint to get booked dates for a chalet
-    
-    يُستخدم لتعطيل التواريخ المحجوزة في منتقي التاريخ
+    API للحصول على الشفتات المتاحة ليوم معين
     """
+    date_str = request.GET.get('date')
+    if not date_str:
+        return JsonResponse({'error': 'Date is required'}, status=400)
+        
     chalet = get_object_or_404(Chalet, pk=pk)
-    booked_dates = Booking.get_booked_dates(chalet)
+    
+    import datetime
+    try:
+        date_obj = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        return JsonResponse({'error': 'Invalid date format'}, status=400)
+        
+    booked_shifts = Booking.get_booked_shifts(chalet, date_obj)
     
     return JsonResponse({
-        'booked_dates': booked_dates,
+        'booked_shifts': booked_shifts,
         'chalet_name': chalet.name,
     })
 
@@ -284,8 +304,9 @@ def booking_receipt(request, booking_id):
     whatsapp_msg = f"""مرحباً {booking_obj.name}،
 {status_text} في شاليه النرجس! 🌟
 
-📅 الوصول: {booking_obj.check_in.strftime('%Y/%m/%d')}
-📅 المغادرة: {booking_obj.check_out.strftime('%Y/%m/%d')}
+📅 تاريخ الحجز: {booking_obj.check_in.strftime('%Y/%m/%d')}
+🕒 الشفتات: {booking_obj.get_shifts_display()}
+🎉 نوع المناسبة: {booking_obj.event_type}
 💰 المبلغ: {booking_obj.total_price} د.ع
 
 شكراً لاختيارك شاليه النرجس!"""

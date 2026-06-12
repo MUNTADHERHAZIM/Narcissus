@@ -27,8 +27,8 @@ urlpatterns = [
     # اتصل بنا - Contact
     path('contact/', views.contact, name='contact'),
     
-    # API للتواريخ المحجوزة - Booked Dates API
-    path('api/booked-dates/<int:pk>/', views.get_booked_dates, name='get_booked_dates'),
+    # API للشفتات المحجوزة
+    path('api/booked-shifts/<int:pk>/', views.check_shifts_availability, name='check_shifts_availability'),
     
     # لوحة تحكم الإدارة - Admin Dashboard
     path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
