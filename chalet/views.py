@@ -17,7 +17,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.contrib.admin.views.decorators import staff_member_required
-from .models import Chalet, ChaletImage, Booking, Review
+from .models import Chalet, ChaletImage, Booking, Review, SystemLog, log_action
 from .forms import BookingForm, ContactForm
 
 
@@ -130,6 +130,14 @@ def booking(request, pk=None):
             booking_obj.status = 'pending'
             booking_obj.save()
             
+            # تسجيل العملية في سجل تحركات النظام
+            log_action(
+                user=None,
+                action_type='create_booking',
+                description=f'تم تقديم طلب حجز جديد برقم #{booking_obj.id} لشاليه {chalet.name} للعميل {booking_obj.name} (التاريخ: {booking_obj.check_in.strftime("%Y/%m/%d")})',
+                request=request
+            )
+            
             # رسالة نجاح
             messages.success(
                 request,
@@ -201,7 +209,15 @@ def contact(request):
         form = ContactForm(request.POST)
         
         if form.is_valid():
-            form.save()
+            contact_msg = form.save()
+            
+            # تسجيل العملية في سجل تحركات النظام
+            log_action(
+                user=None,
+                action_type='create_contact_message',
+                description=f'تم إرسال رسالة اتصال جديدة من العميل {contact_msg.name} بموضوع: {contact_msg.subject}',
+                request=request
+            )
             messages.success(
                 request,
                 'تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.'
@@ -246,6 +262,45 @@ def check_shifts_availability(request, pk):
     })
 
 
+@require_GET
+def get_booked_dates(request, pk):
+    """
+    API للحصول على قائمة التواريخ والشفتات المحجوزة من اليوم ولمدة 180 يوم القادمة
+    """
+    chalet = get_object_or_404(Chalet, pk=pk)
+    
+    import datetime
+    from django.utils import timezone
+    
+    today = timezone.localdate()
+    end_date = today + datetime.timedelta(days=180)
+    
+    # جلب الحجوزات المؤكدة في هذه الفترة
+    bookings = Booking.objects.filter(
+        chalet=chalet,
+        status='confirmed',
+        check_in__gte=today,
+        check_in__lte=end_date
+    )
+    
+    booked_dates = {}
+    for b in bookings:
+        date_str = b.check_in.strftime('%Y-%m-%d')
+        if date_str not in booked_dates:
+            booked_dates[date_str] = {
+                'morning': False,
+                'evening': False,
+                'overnight': False
+            }
+        if b.shift_morning: booked_dates[date_str]['morning'] = True
+        if b.shift_evening: booked_dates[date_str]['evening'] = True
+        if b.shift_overnight: booked_dates[date_str]['overnight'] = True
+        
+    return JsonResponse({
+        'booked_dates': booked_dates
+    })
+
+
 @staff_member_required
 def admin_dashboard(request):
     """
@@ -259,11 +314,17 @@ def admin_dashboard(request):
     pending_bookings = bookings.filter(status='pending').count()
     confirmed_bookings = bookings.filter(status='confirmed').count()
     
+    # سجل تحركات النظام (للمدير العام / Superuser فقط)
+    system_logs = None
+    if request.user.is_superuser:
+        system_logs = SystemLog.objects.all().order_by('-created_at')[:50]
+    
     context = {
         'bookings': bookings,
         'total_bookings': total_bookings,
         'pending_bookings': pending_bookings,
         'confirmed_bookings': confirmed_bookings,
+        'system_logs': system_logs,
         'page_title': 'لوحة التحكم | إدارة الحجوزات',
     }
     
@@ -280,12 +341,47 @@ def update_booking_status(request, booking_id, status):
     
     valid_statuses = ['pending', 'confirmed', 'cancelled', 'completed']
     if status in valid_statuses:
+        old_status = booking_obj.get_status_display()
         booking_obj.status = status
         booking_obj.save()
+        
+        # تسجيل العملية في سجل تحركات النظام
+        log_action(
+            user=request.user,
+            action_type='update_booking_status',
+            description=f'تم تعديل حالة الحجز #{booking_obj.id} للعميل {booking_obj.name} من ({old_status}) إلى ({booking_obj.get_status_display()})',
+            request=request
+        )
         messages.success(request, f'تم تحديث حالة الحجز لـ {booking_obj.name} بنجاح.')
     else:
         messages.error(request, 'حالة غير صالحة.')
         
+    return redirect('chalet:admin_dashboard')
+
+
+@staff_member_required
+def delete_booking(request, booking_id):
+    """
+    حذف الحجز نهائياً (متاح للمدير العام / Superuser فقط)
+    """
+    if not request.user.is_superuser:
+        messages.error(request, 'ليس لديك الصلاحية لحذف الحجوزات. هذه الميزة للمدير العام فقط.')
+        return redirect('chalet:admin_dashboard')
+        
+    booking_obj = get_object_or_404(Booking, id=booking_id)
+    booking_name = booking_obj.name
+    booking_id_str = booking_obj.id
+    
+    # تسجيل عملية الحذف في سجل تحركات النظام
+    log_action(
+        user=request.user,
+        action_type='delete_booking',
+        description=f'تم حذف الحجز #{booking_id_str} للعميل {booking_name} نهائياً من النظام',
+        request=request
+    )
+    
+    booking_obj.delete()
+    messages.success(request, f'تم حذف حجز العميل {booking_name} بنجاح.')
     return redirect('chalet:admin_dashboard')
 
 

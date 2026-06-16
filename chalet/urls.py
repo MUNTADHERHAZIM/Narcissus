@@ -29,9 +29,11 @@ urlpatterns = [
     
     # API للشفتات المحجوزة
     path('api/booked-shifts/<int:pk>/', views.check_shifts_availability, name='check_shifts_availability'),
+    path('api/booked-dates/<int:pk>/', views.get_booked_dates, name='get_booked_dates'),
     
     # لوحة تحكم الإدارة - Admin Dashboard
     path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('dashboard/booking/<int:booking_id>/<str:status>/', views.update_booking_status, name='update_booking_status'),
+    path('dashboard/booking/delete/<int:booking_id>/', views.delete_booking, name='delete_booking'),
     path('dashboard/receipt/<int:booking_id>/', views.booking_receipt, name='booking_receipt'),
 ]

@@ -544,14 +544,15 @@ class ContactMessage(models.Model):
     )
     
     email = models.EmailField(
-        verbose_name='البريد الإلكتروني'
+        verbose_name='البريد الإلكتروني',
+        blank=True,
+        null=True
     )
     
     phone = models.CharField(
         max_length=15,
         validators=[phone_regex],
-        verbose_name='رقم الهاتف',
-        blank=True
+        verbose_name='رقم الهاتف'
     )
     
     subject = models.CharField(
@@ -650,8 +651,8 @@ class SiteSettings(models.Model):
     site_description = models.TextField(default='أفضل شاليه للإيجار اليومي والأسبوعي', verbose_name='وصف الموقع')
     
     # معلومات التواصل
-    phone_number = models.CharField(max_length=20, default='+964 770 000 0000', verbose_name='رقم الهاتف الأساسي')
-    whatsapp_number = models.CharField(max_length=20, default='+9647700000000', verbose_name='رقم الواتساب', help_text='بدون فواصل، استخدم رمز الدولة مثل +964')
+    phone_number = models.CharField(max_length=20, default='+964 778 275 5075', verbose_name='رقم الهاتف الأساسي')
+    whatsapp_number = models.CharField(max_length=20, default='+9647782755075', verbose_name='رقم الواتساب', help_text='بدون فواصل، استخدم رمز الدولة مثل +964')
     email_address = models.EmailField(default='info@narjis-chalet.com', verbose_name='البريد الإلكتروني')
     
     # الموقع الجغرافي
@@ -689,3 +690,76 @@ class SiteSettings(models.Model):
         """جلب الإعدادات (أو إنشائها إذا لم تكن موجودة)"""
         settings, created = cls.objects.get_or_create(pk=1)
         return settings
+
+
+class SystemLog(models.Model):
+    """
+    نموذج سجل عمليات تحركات النظام
+    System Activity Log Model
+    """
+    ACTION_CHOICES = [
+        ('create_booking', 'تقديم طلب حجز'),
+        ('update_booking_status', 'تحديث حالة حجز'),
+        ('delete_booking', 'حذف حجز'),
+        ('create_contact_message', 'إرسال رسالة اتصال'),
+        ('other', 'عملية أخرى'),
+    ]
+    
+    user = models.ForeignKey(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='المستخدم',
+        related_name='system_logs'
+    )
+    action_type = models.CharField(
+        max_length=50,
+        choices=ACTION_CHOICES,
+        default='other',
+        verbose_name='نوع العملية'
+    )
+    description = models.TextField(
+        verbose_name='تفاصيل العملية'
+    )
+    ip_address = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        verbose_name='عنوان IP'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='التاريخ والوقت'
+    )
+
+    class Meta:
+        verbose_name = 'سجل تحركات النظام'
+        verbose_name_plural = 'سجل تحركات النظام'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        user_str = self.user.username if self.user else "زائر"
+        return f"{user_str} - {self.get_action_type_display()} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+
+
+def log_action(user, action_type, description, request=None):
+    """
+    دالة مساعدة لتسجيل تحركات النظام
+    """
+    ip = None
+    if request:
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+            
+        if not user and request.user and request.user.is_authenticated:
+            user = request.user
+            
+    SystemLog.objects.create(
+        user=user,
+        action_type=action_type,
+        description=description,
+        ip_address=ip
+    )

@@ -179,16 +179,17 @@ class ContactForm(forms.ModelForm):
             }),
             'email': forms.EmailInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'example@email.com',
-                'required': True,
+                'placeholder': 'example@email.com (اختياري)',
                 'dir': 'ltr',
             }),
             'phone': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': '07XXXXXXXXX',
+                'required': True,
                 'dir': 'ltr',
                 'pattern': '07[0-9]{9}',
                 'maxlength': '11',
+                'minlength': '11',
                 'title': 'يرجى إدخال رقم هاتف عراقي صحيح مكون من 11 رقماً ويبدأ بـ 07',
             }),
             'subject': forms.TextInput(attrs={
@@ -205,8 +206,8 @@ class ContactForm(forms.ModelForm):
         }
         labels = {
             'name': 'الاسم',
-            'email': 'البريد الإلكتروني',
-            'phone': 'رقم الهاتف (اختياري)',
+            'email': 'البريد الإلكتروني (اختياري)',
+            'phone': 'رقم الهاتف',
             'subject': 'الموضوع',
             'message': 'الرسالة',
         }

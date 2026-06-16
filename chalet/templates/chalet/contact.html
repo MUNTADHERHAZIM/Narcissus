@@ -18,12 +18,10 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // إحداثيات افتراضية (يمكن تعديلها لاحقاً حسب الموقع الدقيق)
-        // سنفترض موقعاً تقريبياً في العراق
-        const latitude = 30.449619;
-        const longitude = 47.898551;
+        // إحداثيات الموقع الدقيق على الخريطة
+        const latitude = 30.4398613;
+        const longitude = 47.8920822;
         const chaletName = "شاليه النرجس";
-            //30.449619, 47.898551
 
 
         // تهيئة الخريطة
@@ -109,7 +107,7 @@
                             </div>
                             <div class="contact-card-content">
                                 <h5>الهاتف</h5>
-                                <p dir="ltr">+964 XXX XXX XXXX</p>
+                                <p dir="ltr">{{ site_settings.phone_number|default:"+964 778 275 5075" }}</p>
                             </div>
                         </div>
 
@@ -119,7 +117,7 @@
                             </div>
                             <div class="contact-card-content">
                                 <h5>البريد الإلكتروني</h5>
-                                <p>info@narjis-chalet.com</p>
+                                <p>{{ site_settings.email_address|default:"info@narjis-chalet.com" }}</p>
                             </div>
                         </div>
 
@@ -138,17 +136,17 @@
                     <div class="social-contact">
                         <h5>تابعنا على</h5>
                         <div class="social-links">
-                            <a href="#" class="social-link facebook" title="فيسبوك">
+                            <a href="{{ site_settings.facebook_url|default:'#' }}" class="social-link facebook" title="فيسبوك" target="_blank">
                                 <i class="fab fa-facebook-f"></i>
                             </a>
-                            <a href="#" class="social-link instagram" title="انستغرام">
+                            <a href="{{ site_settings.instagram_url|default:'#' }}" class="social-link instagram" title="انستغرام" target="_blank">
                                 <i class="fab fa-instagram"></i>
                             </a>
-                            <a href="https://wa.me/964XXXXXXXXXX" class="social-link whatsapp" title="واتساب"
+                            <a href="https://wa.me/{{ site_settings.whatsapp_number|default:'9647782755075'|cut:'+'|cut:' ' }}" class="social-link whatsapp" title="واتساب"
                                 target="_blank">
                                 <i class="fab fa-whatsapp"></i>
                             </a>
-                            <a href="#" class="social-link telegram" title="تيليجرام">
+                            <a href="{{ site_settings.telegram_url|default:'#' }}" class="social-link telegram" title="تيليجرام" target="_blank">
                                 <i class="fab fa-telegram"></i>
                             </a>
                         </div>
@@ -182,7 +180,7 @@
 
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.email.id_for_label }}" class="form-label">
-                                    {{ form.email.label }} <span class="text-danger">*</span>
+                                    {{ form.email.label }}
                                 </label>
                                 {{ form.email }}
                                 {% if form.email.errors %}
@@ -196,9 +194,14 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.phone.id_for_label }}" class="form-label">
-                                    {{ form.phone.label }}
+                                    {{ form.phone.label }} <span class="text-danger">*</span>
                                 </label>
                                 {{ form.phone }}
+                                {% if form.phone.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.phone.errors %}{{ error }}{% endfor %}
+                                </div>
+                                {% endif %}
                             </div>
 
                             <div class="col-md-6 mb-3">

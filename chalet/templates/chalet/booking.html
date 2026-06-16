@@ -4,6 +4,121 @@
 
 {% block title %}حجز الشاليه - شاليه النرجس{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* تخصيص مظهر التقويم المدمج ومنع التمدد الأفقي */
+    .flatpickr-calendar.inline {
+        width: 315px !important;
+        max-width: 315px !important;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        background: #ffffff;
+        padding: 8px;
+        margin: 10px auto 0 auto; /* للتوسيط الأفقي */
+    }
+    
+    .flatpickr-months {
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 8px;
+        margin-bottom: 8px;
+    }
+
+    .flatpickr-current-month {
+        font-family: 'Tajawal', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    span.flatpickr-weekday {
+        font-family: 'Tajawal', sans-serif;
+        font-weight: 600;
+        color: #64748b;
+    }
+    
+    .flatpickr-day {
+        font-family: 'Tajawal', sans-serif;
+        font-weight: 600;
+        border-radius: 8px !important;
+        border: 2px solid transparent !important; /* مسافة افتراضية ناعمة لمنع الالتصاق */
+        height: 38px !important;
+        line-height: 34px !important;
+        transition: all 0.2s ease;
+    }
+    
+    /* متاح بالكامل - أخضر ناعم */
+    .flatpickr-day.day-fully-available {
+        background-color: #e2f5ec !important;
+        color: #0d6832 !important;
+    }
+    .flatpickr-day.day-fully-available:hover {
+        background-color: #badbcc !important;
+        color: #0f5132 !important;
+    }
+    
+    /* متاح جزئياً - برتقالي/أصفر ناعم */
+    .flatpickr-day.day-partially-booked {
+        background-color: #fff8e6 !important;
+        color: #b27b00 !important;
+        font-weight: bold;
+    }
+    .flatpickr-day.day-partially-booked:hover {
+        background-color: #ffe69c !important;
+        color: #664d03 !important;
+    }
+    
+    /* محجوز بالكامل - أحمر ناعم مع خط خفيف */
+    .flatpickr-day.day-fully-booked {
+        background-color: #fce8e6 !important;
+        color: #a8201a !important;
+        text-decoration: line-through;
+        opacity: 0.8;
+    }
+    
+    /* الأيام المعطلة (الماضي) */
+    .flatpickr-day.flatpickr-disabled,
+    .flatpickr-day.flatpickr-disabled:hover {
+        background-color: #f8f9fa !important;
+        border-color: transparent !important;
+        color: #cbd5e1 !important;
+        text-decoration: line-through;
+        cursor: not-allowed;
+    }
+
+    /* اليوم المختار */
+    .flatpickr-day.selected,
+    .flatpickr-day.selected:hover {
+        background-color: var(--secondary-color, #c5a059) !important;
+        border-color: var(--secondary-color, #c5a059) !important;
+        color: #fff !important;
+        font-weight: bold;
+        box-shadow: 0 4px 10px rgba(197, 160, 89, 0.3);
+    }
+
+    /* دليل الألوان */
+    .legend-color-box {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border-radius: 4px;
+        vertical-align: middle;
+    }
+    .bg-available {
+        background-color: #e2f5ec;
+        border: 1px solid #badbcc;
+    }
+    .bg-partially {
+        background-color: #fff8e6;
+        border: 1px solid #ffe69c;
+    }
+    .bg-booked {
+        background-color: #fce8e6;
+        border: 1px solid #f5c2c7;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <!-- رأس الصفحة -->
 <section class="page-header">
@@ -65,17 +180,41 @@
                                     {% endif %}
                                 </div>
 
-                                <div class="mb-3">
+                                <div class="mb-4">
                                     <label for="{{ form.check_in.id_for_label }}" class="form-label">
                                         <i class="fas fa-calendar-day me-1"></i>
                                         {{ form.check_in.label }} <span class="text-danger">*</span>
                                     </label>
                                     {{ form.check_in }}
                                     {% if form.check_in.errors %}
-                                    <div class="invalid-feedback d-block">
+                                    <div class="invalid-feedback d-block mt-2">
                                         {% for error in form.check_in.errors %}{{ error }}{% endfor %}
                                     </div>
                                     {% endif %}
+                                    
+                                    <!-- دليل توفر الشاليه بالألوان -->
+                                    <div class="calendar-legend mt-3 p-3 bg-light rounded border">
+                                        <div class="row g-2">
+                                            <div class="col-md-4 col-6">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="legend-color-box bg-available me-2"></span>
+                                                    <span class="small text-muted">🟢 متاح بالكامل</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-6">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="legend-color-box bg-partially me-2"></span>
+                                                    <span class="small text-muted">🟡 متاح جزئياً</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-12">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="legend-color-box bg-booked me-2"></span>
+                                                    <span class="small text-muted">🔴 محجوز بالكامل</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="mb-3">
@@ -314,9 +453,9 @@
 {% block extra_js %}
 <script>
     const chaletId = {{ chalet.id }};
-    const morningPrice = {% if chalet %}{ { chalet.morning_price } } {% else %} 0{% endif %};
-    const eveningPrice = {% if chalet %}{ { chalet.evening_price } } {% else %} 0{% endif %};
-    const overnightPrice = {% if chalet %}{ { chalet.overnight_price } } {% else %} 0{% endif %};
+    const morningPrice = {% if chalet %}{{ chalet.morning_price }}{% else %}0{% endif %};
+    const eveningPrice = {% if chalet %}{{ chalet.evening_price }}{% else %}0{% endif %};
+    const overnightPrice = {% if chalet %}{{ chalet.overnight_price }}{% else %}0{% endif %};
 
     const morningCb = document.getElementById('id_shift_morning');
     const eveningCb = document.getElementById('id_shift_evening');
@@ -326,32 +465,107 @@
         cb.addEventListener('change', calculateTotal);
     });
 
-    // تهيئة منتقي التاريخ
-    const checkInPicker = flatpickr("#id_check_in", {
-        locale: "ar",
-        dateFormat: "Y-m-d",
-        minDate: "today",
-        onChange: function (selectedDates, dateStr) {
-            checkAvailability(dateStr);
-            calculateTotal();
-        }
-    });
+    let bookedDates = {};
+    let checkInPicker = null;
 
-    function checkAvailability(dateStr) {
-        if (!dateStr) return;
-
-        fetch(`/api/booked-shifts/${chaletId}/?date=${dateStr}`)
+    // تحميل البيانات من الـ API ثم تهيئة التقويم
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch(`/api/booked-dates/${chaletId}/`)
             .then(response => response.json())
             .then(data => {
-                if (data.booked_shifts) {
-                    const shifts = data.booked_shifts;
-                    updateShiftAvailability(morningCb, shifts.morning);
-                    updateShiftAvailability(eveningCb, shifts.evening);
-                    updateShiftAvailability(overnightCb, shifts.overnight);
-                    calculateTotal();
-                }
+                bookedDates = data.booked_dates || {};
+                initCalendar();
             })
-            .catch(error => console.error('Error fetching availability:', error));
+            .catch(error => {
+                console.error('Error fetching booked dates:', error);
+                initCalendar(); // تهيئة احتياطية في حال الفشل
+            });
+    });
+
+    function initCalendar() {
+        // تحديد التواريخ غير المتاحة بالكامل ليتم تعطيلها
+        const disabledDates = [];
+        const todayStr = new Date().toISOString().split('T')[0];
+        
+        Object.keys(bookedDates).forEach(dateStr => {
+            const shifts = bookedDates[dateStr];
+            // إذا كانت جميع الشفتات محجوزة
+            if (shifts.morning && shifts.evening && shifts.overnight) {
+                disabledDates.push(dateStr);
+            }
+        });
+
+        checkInPicker = flatpickr("#id_check_in", {
+            locale: "ar",
+            dateFormat: "Y-m-d",
+            minDate: "today",
+            inline: true, // عرض التقويم مدمجاً مباشرة في الصفحة
+            disable: disabledDates, // تعطيل الأيام المحجوزة بالكامل
+            onChange: function (selectedDates, dateStr) {
+                updateShiftsAvailabilityForDate(dateStr);
+                calculateTotal();
+            },
+            onDayCreate: function(dObj, dStr, fp, dayElem) {
+                // تلوين الأيام بناءً على حالة الحجز
+                const dateStr = formatDateToLocal(dayElem.dateObj);
+                const today = new Date();
+                today.setHours(0,0,0,0);
+                
+                if (dayElem.dateObj < today) {
+                    return; // لا نلون الأيام الماضية
+                }
+                
+                if (bookedDates[dateStr]) {
+                    const shifts = bookedDates[dateStr];
+                    if (shifts.morning && shifts.evening && shifts.overnight) {
+                        dayElem.classList.add("day-fully-booked");
+                        dayElem.setAttribute("title", "محجوز بالكامل");
+                    } else {
+                        dayElem.classList.add("day-partially-booked");
+                        let reservedShifts = [];
+                        if (shifts.morning) reservedShifts.push("الصباحي");
+                        if (shifts.evening) reservedShifts.push("المسائي");
+                        if (shifts.overnight) reservedShifts.push("المبيت");
+                        dayElem.setAttribute("title", "محجوز: " + reservedShifts.join(" + "));
+                    }
+                } else {
+                    dayElem.classList.add("day-fully-available");
+                    dayElem.setAttribute("title", "متاح بالكامل");
+                }
+            }
+        });
+
+        // تشغيل التحقق للتواريخ المحددة مسبقاً إن وجدت
+        const initialDate = document.getElementById('id_check_in').value;
+        if (initialDate) {
+            updateShiftsAvailabilityForDate(initialDate);
+        }
+    }
+
+    // مساعدة لتنسيق التاريخ بدون فروق التوقيت
+    function formatDateToLocal(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    function updateShiftsAvailabilityForDate(dateStr) {
+        if (!dateStr) return;
+
+        // إذا كان هناك بيانات مخزنة لهذا التاريخ
+        if (bookedDates[dateStr]) {
+            const shifts = bookedDates[dateStr];
+            updateShiftAvailability(morningCb, shifts.morning);
+            updateShiftAvailability(eveningCb, shifts.evening);
+            updateShiftAvailability(overnightCb, shifts.overnight);
+        } else {
+            // كل الشفتات متاحة
+            updateShiftAvailability(morningCb, false);
+            updateShiftAvailability(eveningCb, false);
+            updateShiftAvailability(overnightCb, false);
+        }
+        calculateTotal();
     }
 
     function updateShiftAvailability(checkbox, isBooked) {
@@ -363,8 +577,8 @@
         if (isBooked) {
             checkbox.checked = false;
             checkbox.disabled = true;
-            checkbox.parentElement.style.opacity = '1';
-            checkbox.parentElement.style.textDecoration = 'none';
+            checkbox.parentElement.style.opacity = '0.6';
+            checkbox.parentElement.style.textDecoration = 'line-through';
             label.style.color = '#dc3545';
             label.style.fontWeight = 'bold';
             label.textContent = label.dataset.originalText + ' (غير متوفر)';
@@ -392,11 +606,6 @@
         } else {
             document.getElementById('priceCalculator').style.display = 'none';
         }
-    }
-
-    // Check initially if date is present
-    if (document.getElementById('id_check_in').value) {
-        checkAvailability(document.getElementById('id_check_in').value);
     }
 </script>
 {% endblock %}

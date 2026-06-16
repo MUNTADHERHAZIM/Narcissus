@@ -12,7 +12,7 @@ Admin configuration for chalet app
 from django.contrib import admin
 from django import forms
 from django.utils.html import format_html
-from .models import Chalet, ChaletImage, ChaletFeature, Booking, ContactMessage, Review, SiteSettings
+from .models import Chalet, ChaletImage, ChaletFeature, Booking, ContactMessage, Review, SiteSettings, SystemLog
 
 
 class ChaletImageInline(admin.TabularInline):
@@ -274,4 +274,23 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         if self.model.objects.count() > 0:
             return False
         return super().has_add_permission(request)
+
+
+@admin.register(SystemLog)
+class SystemLogAdmin(admin.ModelAdmin):
+    """
+    إعدادات صفحة سجل تحركات النظام في لوحة الإدارة
+    """
+    list_display = ['created_at', 'user', 'action_type', 'description', 'ip_address']
+    list_filter = ['action_type', 'created_at', 'user']
+    search_fields = ['description', 'user__username', 'ip_address']
+    readonly_fields = ['user', 'action_type', 'description', 'ip_address', 'created_at']
+    date_hierarchy = 'created_at'
+    list_per_page = 50
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
 
