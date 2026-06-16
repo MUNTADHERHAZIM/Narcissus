@@ -460,17 +460,20 @@
 
 {% block extra_js %}
 <script>
-    // معالج أخطاء لعرض المشاكل على الجوال مباشرة
+    // 1. تسجيل معالج الأخطاء في سكربت مستقل لضمان التقاط أخطاء البنية (Syntax Errors) في السكربت التالي
     window.onerror = function(message, source, lineno, colno, error) {
         const statusDiv = document.getElementById('calendar-status');
         if (statusDiv) {
             statusDiv.style.color = '#dc3545';
             statusDiv.style.fontWeight = 'bold';
-            statusDiv.innerHTML = 'خطأ برميجي: ' + message + ' في السطر ' + lineno;
+            statusDiv.innerHTML = 'خطأ في الصفحة: ' + message + ' (السطر ' + lineno + ')';
         }
         return false;
     };
+</script>
 
+<script>
+    // 2. مساعد لتحديث حالة التقويم والتحميل
     function updateStatus(msg, isError = false) {
         const statusDiv = document.getElementById('calendar-status');
         if (statusDiv) {
@@ -480,17 +483,20 @@
         }
     }
 
-    const chaletId = {{ chalet.id }};
-    const morningPrice = {% if chalet %}{{ chalet.morning_price }}{% else %}0{% endif %};
-    const eveningPrice = {% if chalet %}{{ chalet.evening_price }}{% else %}0{% endif %};
-    const overnightPrice = {% if chalet %}{{ chalet.overnight_price }}{% else %}0{% endif %};
+    // تنسيق الأرقام برمجياً لمنع مشاكل الترجمة والأرقام العربية في متصفحات الجوال
+    const chaletId = {% if chalet %}{{ chalet.id|stringformat:"d" }}{% else %}0{% endif %};
+    const morningPrice = {% if chalet %}{{ chalet.morning_price|stringformat:".2f" }}{% else %}0{% endif %};
+    const eveningPrice = {% if chalet %}{{ chalet.evening_price|stringformat:".2f" }}{% else %}0{% endif %};
+    const overnightPrice = {% if chalet %}{{ chalet.overnight_price|stringformat:".2f" }}{% else %}0{% endif %};
 
     const morningCb = document.getElementById('id_shift_morning');
     const eveningCb = document.getElementById('id_shift_evening');
     const overnightCb = document.getElementById('id_shift_overnight');
 
     [morningCb, eveningCb, overnightCb].forEach(cb => {
-        cb.addEventListener('change', calculateTotal);
+        if (cb) {
+            cb.addEventListener('change', calculateTotal);
+        }
     });
 
     let bookedDates = {};
@@ -567,7 +573,8 @@
         updateStatus('تم تحميل التقويم وتلوين الأيام بنجاح');
 
         // تشغيل التحقق للتواريخ المحددة مسبقاً إن وجدت
-        const initialDate = document.getElementById('id_check_in').value;
+        const checkInInput = document.getElementById('id_check_in');
+        const initialDate = checkInInput ? checkInInput.value : null;
         if (initialDate) {
             updateShiftsAvailabilityForDate(initialDate);
         }
@@ -600,7 +607,9 @@
     }
 
     function updateShiftAvailability(checkbox, isBooked) {
+        if (!checkbox) return;
         const label = checkbox.nextElementSibling;
+        if (!label) return;
         if (!label.dataset.originalText) {
             label.dataset.originalText = label.textContent.trim();
         }
@@ -627,15 +636,18 @@
     function calculateTotal() {
         let total = 0;
 
-        if (morningCb.checked && !morningCb.disabled) total += morningPrice;
-        if (eveningCb.checked && !eveningCb.disabled) total += eveningPrice;
-        if (overnightCb.checked && !overnightCb.disabled) total += overnightPrice;
+        if (morningCb && morningCb.checked && !morningCb.disabled) total += morningPrice;
+        if (eveningCb && eveningCb.checked && !eveningCb.disabled) total += eveningPrice;
+        if (overnightCb && overnightCb.checked && !overnightCb.disabled) total += overnightPrice;
 
-        if (total > 0) {
-            document.getElementById('totalPrice').textContent = total.toLocaleString('ar-IQ') + ' دينار';
-            document.getElementById('priceCalculator').style.display = 'block';
-        } else {
-            document.getElementById('priceCalculator').style.display = 'none';
+        const priceCalcDiv = document.getElementById('priceCalculator');
+        const totalPriceSpan = document.getElementById('totalPrice');
+
+        if (total > 0 && totalPriceSpan && priceCalcDiv) {
+            totalPriceSpan.textContent = total.toLocaleString('ar-IQ') + ' دينار';
+            priceCalcDiv.style.display = 'block';
+        } else if (priceCalcDiv) {
+            priceCalcDiv.style.display = 'none';
         }
     }
 
