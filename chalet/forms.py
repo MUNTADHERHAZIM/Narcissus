@@ -48,6 +48,8 @@ class BookingForm(forms.ModelForm):
                 'class': 'form-control',
                 'type': 'text',
                 'required': True,
+                'readonly': 'readonly',
+                'autocomplete': 'off',
             }),
             'shift_morning': forms.CheckboxInput(attrs={
                 'class': 'form-check-input',
