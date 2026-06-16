@@ -193,6 +193,7 @@
                                         {{ form.check_in.label }} <span class="text-danger">*</span>
                                     </label>
                                     {{ form.check_in }}
+                                    <div id="calendar-status" class="text-muted small mt-1" style="font-size: 0.8rem; direction: rtl;">جاري بدء تحميل التقويم...</div>
                                     {% if form.check_in.errors %}
                                     <div class="invalid-feedback d-block mt-2">
                                         {% for error in form.check_in.errors %}{{ error }}{% endfor %}
@@ -459,6 +460,26 @@
 
 {% block extra_js %}
 <script>
+    // معالج أخطاء لعرض المشاكل على الجوال مباشرة
+    window.onerror = function(message, source, lineno, colno, error) {
+        const statusDiv = document.getElementById('calendar-status');
+        if (statusDiv) {
+            statusDiv.style.color = '#dc3545';
+            statusDiv.style.fontWeight = 'bold';
+            statusDiv.innerHTML = 'خطأ برميجي: ' + message + ' في السطر ' + lineno;
+        }
+        return false;
+    };
+
+    function updateStatus(msg, isError = false) {
+        const statusDiv = document.getElementById('calendar-status');
+        if (statusDiv) {
+            statusDiv.style.color = isError ? '#dc3545' : '#6c757d';
+            statusDiv.style.fontWeight = isError ? 'bold' : 'normal';
+            statusDiv.innerHTML = msg;
+        }
+    }
+
     const chaletId = {{ chalet.id }};
     const morningPrice = {% if chalet %}{{ chalet.morning_price }}{% else %}0{% endif %};
     const eveningPrice = {% if chalet %}{{ chalet.evening_price }}{% else %}0{% endif %};
@@ -477,8 +498,10 @@
 
     // تهيئة التقويم بعد التأكد من جاهزية المكتبة
     function initCalendar() {
+        updateStatus('جاري تهيئة واجهة التقويم...');
         if (typeof flatpickr === 'undefined') {
             console.error('Flatpickr is not loaded yet.');
+            updateStatus('فشل التحميل: مكتبة التقويم flatpickr غير معرفة. قد تكون محجوبة بواسطة المتصفح أو إعدادات الحماية.', true);
             return;
         }
 
@@ -540,6 +563,8 @@
                 }
             }
         });
+
+        updateStatus('تم تحميل التقويم وتلوين الأيام بنجاح');
 
         // تشغيل التحقق للتواريخ المحددة مسبقاً إن وجدت
         const initialDate = document.getElementById('id_check_in').value;
@@ -616,14 +641,22 @@
 
     // جلب البيانات من الـ API والبدء في تهيئة التقويم مع معالجة حالة DOMContentLoaded بأمان
     function loadBookedDates() {
+        updateStatus('جاري الاتصال بالسيرفر وجلب تواريخ الحجوزات...');
         fetch(`/api/booked-dates/${chaletId}/`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('فشل جلب البيانات من السيرفر (رمز الاستجابة ' + response.status + ')');
+                }
+                return response.json();
+            })
             .then(data => {
                 bookedDates = data.booked_dates || {};
+                updateStatus('تم جلب البيانات، جاري رسم التقويم...');
                 initCalendar();
             })
             .catch(error => {
                 console.error('Error fetching booked dates:', error);
+                updateStatus('تنبيه: فشل الاتصال بالسيرفر. تم تشغيل التقويم الاحتياطي. التفاصيل: ' + error.message, true);
                 initCalendar(); // تهيئة احتياطية في حال الفشل
             });
     }
