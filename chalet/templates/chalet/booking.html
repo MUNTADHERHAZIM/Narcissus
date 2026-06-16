@@ -15,9 +15,10 @@
         border-radius: 16px;
         background: #ffffff;
         padding: 8px;
-        margin: 10px auto 0 auto; /* للتوسيط الأفقي */
+        margin: 10px auto 0 auto;
+        /* للتوسيط الأفقي */
     }
-    
+
     .flatpickr-months {
         border-bottom: 1px solid #f1f5f9;
         padding-bottom: 8px;
@@ -36,38 +37,41 @@
         font-weight: 600;
         color: #64748b;
     }
-    
+
     .flatpickr-day {
         font-family: 'Tajawal', sans-serif;
         font-weight: 600;
         border-radius: 8px !important;
-        border: 2px solid transparent !important; /* مسافة افتراضية ناعمة لمنع الالتصاق */
+        border: 2px solid transparent !important;
+        /* مسافة افتراضية ناعمة لمنع الالتصاق */
         height: 38px !important;
         line-height: 34px !important;
         transition: all 0.2s ease;
     }
-    
+
     /* متاح بالكامل - أخضر ناعم */
     .flatpickr-day.day-fully-available {
         background-color: #e2f5ec !important;
         color: #0d6832 !important;
     }
+
     .flatpickr-day.day-fully-available:hover {
         background-color: #badbcc !important;
         color: #0f5132 !important;
     }
-    
+
     /* متاح جزئياً - برتقالي/أصفر ناعم */
     .flatpickr-day.day-partially-booked {
         background-color: #fff8e6 !important;
         color: #b27b00 !important;
         font-weight: bold;
     }
+
     .flatpickr-day.day-partially-booked:hover {
         background-color: #ffe69c !important;
         color: #664d03 !important;
     }
-    
+
     /* محجوز بالكامل - أحمر ناعم مع خط خفيف */
     .flatpickr-day.day-fully-booked {
         background-color: #fce8e6 !important;
@@ -75,7 +79,7 @@
         text-decoration: line-through;
         opacity: 0.8;
     }
-    
+
     /* الأيام المعطلة (الماضي) */
     .flatpickr-day.flatpickr-disabled,
     .flatpickr-day.flatpickr-disabled:hover {
@@ -104,14 +108,17 @@
         border-radius: 4px;
         vertical-align: middle;
     }
+
     .bg-available {
         background-color: #e2f5ec;
         border: 1px solid #badbcc;
     }
+
     .bg-partially {
         background-color: #fff8e6;
         border: 1px solid #ffe69c;
     }
+
     .bg-booked {
         background-color: #fce8e6;
         border: 1px solid #f5c2c7;
@@ -191,7 +198,7 @@
                                         {% for error in form.check_in.errors %}{{ error }}{% endfor %}
                                     </div>
                                     {% endif %}
-                                    
+
                                     <!-- دليل توفر الشاليه بالألوان -->
                                     <div class="calendar-legend mt-3 p-3 bg-light rounded border">
                                         <div class="row g-2">
@@ -469,7 +476,7 @@
     let checkInPicker = null;
 
     // تحميل البيانات من الـ API ثم تهيئة التقويم
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         fetch(`/api/booked-dates/${chaletId}/`)
             .then(response => response.json())
             .then(data => {
@@ -486,7 +493,7 @@
         // تحديد التواريخ غير المتاحة بالكامل ليتم تعطيلها
         const disabledDates = [];
         const todayStr = new Date().toISOString().split('T')[0];
-        
+
         Object.keys(bookedDates).forEach(dateStr => {
             const shifts = bookedDates[dateStr];
             // إذا كانت جميع الشفتات محجوزة
@@ -505,16 +512,16 @@
                 updateShiftsAvailabilityForDate(dateStr);
                 calculateTotal();
             },
-            onDayCreate: function(dObj, dStr, fp, dayElem) {
+            onDayCreate: function (dObj, dStr, fp, dayElem) {
                 // تلوين الأيام بناءً على حالة الحجز
                 const dateStr = formatDateToLocal(dayElem.dateObj);
                 const today = new Date();
-                today.setHours(0,0,0,0);
-                
+                today.setHours(0, 0, 0, 0);
+
                 if (dayElem.dateObj < today) {
                     return; // لا نلون الأيام الماضية
                 }
-                
+
                 if (bookedDates[dateStr]) {
                     const shifts = bookedDates[dateStr];
                     if (shifts.morning && shifts.evening && shifts.overnight) {

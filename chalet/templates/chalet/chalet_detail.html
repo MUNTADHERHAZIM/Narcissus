@@ -249,11 +249,11 @@
                         <div class="contact-quick mt-4">
                             <p class="mb-2 text-center text-muted">أو تواصل معنا مباشرة</p>
                             <div class="d-flex gap-2">
-                                <a href="tel:+964XXXXXXXXXX" class="btn btn-outline-primary flex-fill">
+                                <a href="tel:{{ site_settings.phone_number_clean|default:'+9647782755075' }}" class="btn btn-outline-primary flex-fill" title="اتصال هاتفي">
                                     <i class="fas fa-phone"></i>
                                 </a>
-                                <a href="https://wa.me/964XXXXXXXXXX" class="btn btn-outline-success flex-fill"
-                                    target="_blank">
+                                <a href="https://wa.me/{{ site_settings.whatsapp_number_clean|default:'9647782755075' }}" class="btn btn-outline-success flex-fill"
+                                    target="_blank" title="تواصل عبر واتساب">
                                     <i class="fab fa-whatsapp"></i>
                                 </a>
                             </div>

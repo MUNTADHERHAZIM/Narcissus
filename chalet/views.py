@@ -171,8 +171,9 @@ def booking_success(request, booking_id):
     from .models import SiteSettings
     import urllib.parse
     
+    import re
     settings = SiteSettings.get_settings()
-    admin_phone = settings.whatsapp_number.replace('+', '').replace(' ', '')
+    admin_phone = re.sub(r'\D', '', settings.whatsapp_number) if settings.whatsapp_number else '9647782755075'
     
     # رسالة للآدمن
     whatsapp_msg = f"""مرحباً، أود تأكيد حجزي في شاليه النرجس:
@@ -407,8 +408,9 @@ def booking_receipt(request, booking_id):
 
 شكراً لاختيارك شاليه النرجس!"""
     
-    encoded_msg = urllib.parse.quote(whatsapp_msg)
-    whatsapp_link = f"https://wa.me/{booking_obj.phone.replace('+', '')}?text={encoded_msg}"
+    import re
+    clean_phone = re.sub(r'\D', '', booking_obj.phone)
+    whatsapp_link = f"https://wa.me/{clean_phone}?text={encoded_msg}"
     
     context = {
         'booking': booking_obj,
