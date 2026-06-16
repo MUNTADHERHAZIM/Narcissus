@@ -46,7 +46,7 @@ class BookingForm(forms.ModelForm):
             }),
             'check_in': forms.DateInput(attrs={
                 'class': 'form-control',
-                'type': 'date',
+                'type': 'text',
                 'required': True,
             }),
             'shift_morning': forms.CheckboxInput(attrs={
