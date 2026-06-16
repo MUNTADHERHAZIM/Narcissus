@@ -507,6 +507,7 @@
             dateFormat: "Y-m-d",
             minDate: "today",
             inline: true, // عرض التقويم مدمجاً مباشرة في الصفحة
+            disableMobile: true, // فرض عرض التقويم الملون على الهواتف
             disable: disabledDates, // تعطيل الأيام المحجوزة بالكامل
             onChange: function (selectedDates, dateStr) {
                 updateShiftsAvailabilityForDate(dateStr);
