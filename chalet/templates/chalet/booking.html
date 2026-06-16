@@ -475,21 +475,13 @@
     let bookedDates = {};
     let checkInPicker = null;
 
-    // تحميل البيانات من الـ API ثم تهيئة التقويم
-    document.addEventListener('DOMContentLoaded', function () {
-        fetch(`/api/booked-dates/${chaletId}/`)
-            .then(response => response.json())
-            .then(data => {
-                bookedDates = data.booked_dates || {};
-                initCalendar();
-            })
-            .catch(error => {
-                console.error('Error fetching booked dates:', error);
-                initCalendar(); // تهيئة احتياطية في حال الفشل
-            });
-    });
-
+    // تهيئة التقويم بعد التأكد من جاهزية المكتبة
     function initCalendar() {
+        if (typeof flatpickr === 'undefined') {
+            console.error('Flatpickr is not loaded yet.');
+            return;
+        }
+
         // تحديد التواريخ غير المتاحة بالكامل ليتم تعطيلها
         const disabledDates = [];
         const todayStr = new Date().toISOString().split('T')[0];
@@ -502,8 +494,14 @@
             }
         });
 
+        // التحقق من تحميل ملف اللغة العربية بأمان
+        let localeOpt = "ar";
+        if (!flatpickr.l10ns || !flatpickr.l10ns.ar) {
+            localeOpt = "default";
+        }
+
         checkInPicker = flatpickr("#id_check_in", {
-            locale: "ar",
+            locale: localeOpt,
             dateFormat: "Y-m-d",
             minDate: "today",
             inline: true, // عرض التقويم مدمجاً مباشرة في الصفحة
@@ -614,6 +612,26 @@
         } else {
             document.getElementById('priceCalculator').style.display = 'none';
         }
+    }
+
+    // جلب البيانات من الـ API والبدء في تهيئة التقويم مع معالجة حالة DOMContentLoaded بأمان
+    function loadBookedDates() {
+        fetch(`/api/booked-dates/${chaletId}/`)
+            .then(response => response.json())
+            .then(data => {
+                bookedDates = data.booked_dates || {};
+                initCalendar();
+            })
+            .catch(error => {
+                console.error('Error fetching booked dates:', error);
+                initCalendar(); // تهيئة احتياطية في حال الفشل
+            });
+    }
+
+    if (document.readyState !== 'loading') {
+        loadBookedDates();
+    } else {
+        document.addEventListener('DOMContentLoaded', loadBookedDates);
     }
 </script>
 {% endblock %}
